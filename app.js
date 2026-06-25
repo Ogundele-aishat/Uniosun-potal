@@ -40,8 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadRegistryData = () => JSON.parse(localStorage.getItem('uniosun_registry')) || {};
     const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
 
-    // Render OLevel Subjects Input Form Block Matrix
-    // Render OLevel Subjects Input Form Block Matrix (Restored Layout)
+    // Render OLevel Subjects Input Form Block Matrix (Restored Matrix Layout)
     if (olevelRowsContainer) {
         olevelRowsContainer.innerHTML = REQUIRED_SUBJECTS.map((subject, index) => `
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
@@ -57,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `).join('');
-    }
     }
 
     // Tab Views Control Core Routing Switchboards
@@ -173,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const emailAddress = document.getElementById('bio-email').value.trim();
-        const applicantName = document.getElementById('bio-name').value.trim().toUpperCase();
 
         const handler = PaystackPop.setup({
             key: 'pk_test_4e86a23a7e588432a11b81643193217b12345678', // Hardcoded public test key
@@ -321,7 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // ⚠️ Customize these parameters to exactly mirror your EmailJS Dashboard fields
         const templateParams = {
             to_email: student.biodata.email,
             applicant_name: student.biodata.name,
@@ -379,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
 
-            // Status updates event tracking listener
             tr.querySelector('.status-selector').addEventListener('change', (e) => {
                 const updatedStatus = e.target.value;
                 const freshDb = loadRegistryData();
@@ -388,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderAdminDashboardTable();
             });
 
-            // Single applicant deletion row context handler
             tr.querySelector('.delete-applicant-btn').addEventListener('click', () => {
                 if(confirm(`Remove candidate entry profile for ${student.biodata.name}?`)) {
                     const freshDb = loadRegistryData();
