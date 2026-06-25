@@ -34,44 +34,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // State Variables
     let dynamicActiveJamb = '';
-    const REQUIRED_SUBJECTS = ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'];
+    
+    // Comprehensive List of O'Level Subjects for Dropdowns
+    const SUBJECT_OPTIONS = [
+        "Agricultural Science", "Biology", "Chemistry", "Commerce", "Christian Religious Studies",
+        "Economics", "English Language", "Financial Accounting", "Geography", "Government",
+        "History", "Islamic Religious Studies", "Literature-in-English", "Mathematics", "Physics font-bold"
+    ];
 
     // Local Storage Base Loaders
     const loadRegistryData = () => JSON.parse(localStorage.getItem('uniosun_registry')) || {};
     const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
 
-    // Render OLevel Subjects Dropdown Configuration
+    // Render OLevel Subjects Dynamic Dropdown Selectors Matrix
     if (olevelRowsContainer) {
-        olevelRowsContainer.innerHTML = REQUIRED_SUBJECTS.map((subject, index) => `
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
-                <span class="text-[12px] font-semibold text-slate-700">${subject}</span>
-                <div>
-                    <select id="exam-${index}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
-                        <option value="">-- Exam Sitting --</option>
-                        <option value="WAEC 2026">WAEC 2026</option>
-                        <option value="NECO 2026">NECO 2026</option>
-                        <option value="WAEC 2025">WAEC 2025</option>
-                        <option value="NECO 2025">NECO 2025</option>
-                        <option value="WAEC 2024">WAEC 2024</option>
-                        <option value="NECO 2024">NECO 2024</option>
-                    </select>
+        let rowsHtml = '';
+        // Generates 5 editable rows where subjects, exam bodies, and grades can all be custom chosen
+        for (let i = 0; i < 5; i++) {
+            rowsHtml += `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
+                    <div>
+                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-semibold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                            <option value="">-- Select Subject ${i + 1} --</option>
+                            ${SUBJECT_OPTIONS.map(sub => `<option value="${sub}">${sub}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                            <option value="">-- Exam Sitting --</option>
+                            <option value="WAEC 2026">WAEC 2026</option>
+                            <option value="NECO 2026">NECO 2026</option>
+                            <option value="WAEC 2025">WAEC 2025</option>
+                            <option value="NECO 2025">NECO 2025</option>
+                            <option value="WAEC 2024">WAEC 2024</option>
+                            <option value="NECO 2024">NECO 2024</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                            <option value="">-- Grade --</option>
+                            <option value="A1">A1</option>
+                            <option value="B2">B2</option>
+                            <option value="B3">B3</option>
+                            <option value="C4">C4</option>
+                            <option value="C5">C5</option>
+                            <option value="C6">C6</option>
+                            <option value="D7">D7</option>
+                            <option value="E8">E8</option>
+                            <option value="F9">F9</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <select id="grade-${index}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
-                        <option value="">-- Grade --</option>
-                        <option value="A1">A1</option>
-                        <option value="B2">B2</option>
-                        <option value="B3">B3</option>
-                        <option value="C4">C4</option>
-                        <option value="C5">C5</option>
-                        <option value="C6">C6</option>
-                        <option value="D7">D7</option>
-                        <option value="E8">E8</option>
-                        <option value="F9">F9</option>
-                    </select>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }
+        olevelRowsContainer.innerHTML = rowsHtml;
     }
 
     // Tab Views Control Core Routing Switchboards
@@ -189,9 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const emailAddress = document.getElementById('bio-email').value.trim();
 
         const handler = PaystackPop.setup({
-            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Authorized public key
+            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', 
             email: emailAddress,
-            amount: 2500 * 100, // NGN 2,500 in kobo
+            amount: 2500 * 100, 
             currency: 'NGN',
             callback: function(response) {
                 executeCoreDataStorageSequence(response.reference);
@@ -205,11 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save Profile & Prep Print Layout Output
     const executeCoreDataStorageSequence = (payRef) => {
-        const olevelResults = REQUIRED_SUBJECTS.map((subject, idx) => ({
-            subject,
-            exam: document.getElementById(`exam-${idx}`).value,
-            grade: document.getElementById(`grade-${idx}`).value
-        }));
+        const olevelResults = [];
+        for (let i = 0; i < 5; i++) {
+            olevelResults.push({
+                subject: document.getElementById(`subject-${i}`).value,
+                exam: document.getElementById(`exam-${i}`).value,
+                grade: document.getElementById(`grade-${i}`).value
+            });
+        }
 
         const record = {
             jambNo: dynamicActiveJamb,
@@ -334,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Object maps directly into your customized template tokens
         const templateParams = {
             to_email: student.biodata.email,
             applicant_name: student.biodata.name,
@@ -344,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
             phone_number: student.biodata.phone
         };
 
-        // Your active EmailJS platform keys integrated directly
         emailjs.send("service_6hllp68", "template_p26v91n", templateParams)
             .then(() => {
                 const toast = document.getElementById('email-toast');
