@@ -76,7 +76,7 @@ function generateOlevelRows() {
     });
 }
 
-// --- STEP 1: VERIFY ACCESSIBILITY ---
+// --- STEP 1: VERIFY/LOGIN ENTRY ---
 verifyBtn.addEventListener('click', () => {
     const value = jambInput.value.trim().toUpperCase();
     if (value.length < 5) {
@@ -87,8 +87,15 @@ verifyBtn.addEventListener('click', () => {
     step1Error.classList.add('hidden');
     activeJambNumber = value;
     
+    // Check if user already exists in local DB to allow easy login access
     const existingCandidate = localDb.find(c => c.jambNo === activeJambNumber);
-    if (existingCandidate) populateFormDetails(existingCandidate);
+    if (existingCandidate) {
+        populateFormDetails(existingCandidate);
+    } else {
+        // Clear previous input contents if it's a completely new registration attempt
+        portalForm.reset();
+        generateOlevelRows();
+    }
 
     step1.classList.add('hidden');
     step2.classList.remove('hidden');
@@ -147,9 +154,9 @@ portalForm.addEventListener('submit', (e) => {
     // Initialize Paystack Inline Pop-up Modal Frame
     const paystack = new PaystackPop();
     paystack.newTransaction({
-        key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Default test configuration credentials key
+        key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Public test key
         email: billingEmail,
-        amount: screeningCost * 100, // Calculated value parsed in Kobo currency metrics
+        amount: screeningCost * 100, // Amount parsed in Kobo
         currency: 'NGN',
         onSuccess: function(transaction) {
             payload.paymentRef = transaction.reference;
@@ -199,6 +206,10 @@ function renderSlipReceipt(data) {
             </div>
         </div>
     `;
+
+    // Ensure buttons switch status visibility properly when viewing a pre-saved slip setup
+    lockBtn.classList.remove('hidden');
+    printBtn.classList.add('hidden');
 
     lockBtn.onclick = () => saveRecordToDatabase(data);
 }
