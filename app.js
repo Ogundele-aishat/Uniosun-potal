@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emailAddress = document.getElementById('bio-email').value.trim();
 
         const handler = PaystackPop.setup({
-            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Restored your production test key
+            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Your custom Paystack key
             email: emailAddress,
             amount: 2500 * 100, // NGN 2,500 in kobo
             currency: 'NGN',
@@ -326,15 +326,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Variables mapped out to match your customized official text template!
         const templateParams = {
             to_email: student.biodata.email,
             applicant_name: student.biodata.name,
             jamb_number: student.jambNo,
             course_choice: student.academic.course,
-            utme_score: student.academic.score,
-            receipt_reference: student.receiptRef
+            payment_reference: student.receiptRef, // Matches your tracking reference variable name
+            phone_number: student.biodata.phone
         };
 
+        // ⚠️ Don't forget to swap these strings with your active Dashboard IDs!
         emailjs.send("YOUR_EMAILJS_SERVICE_ID", "YOUR_EMAILJS_TEMPLATE_ID", templateParams)
             .then(() => {
                 const toast = document.getElementById('email-toast');
