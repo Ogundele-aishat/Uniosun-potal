@@ -4,331 +4,252 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNIOSUN Post-UTME Screening Portal</title>
-    
-    <!-- Standalone Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-                    }
-                }
-            }
-        }
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Authorized Account Linkage
+        emailjs.init("IiipzsMLoYhdtmUm7");
     </script>
-    
-    <!-- Paystack Inline Popup Gateway SDK -->
-    <script src="https://js.paystack.co/v2/inline.js"></script>
-
-    <!-- EmailJS SDK Engine Integration & Immediate Init Fix -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script>
-        (function() {
-            if (typeof emailjs !== 'undefined') {
-                // Initializes EmailJS globally before app.js fires
-                emailjs.init({
-                    publicKey: "YOUR_EMAILJS_PUBLIC_KEY", // ⚠️ Replace with your real EmailJS Public Key
-                });
-            }
-        })();
-    </script>
-    
-    <style>
-        @media print {
-            body { background: white; color: black; }
-            header, .no-print, button, .admin-toggle-bar, #tracking-card { display: none !important; }
-            .print-slip { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-        }
-    </style>
 </head>
-<body class="bg-stone-100 text-slate-950 font-sans min-h-screen flex flex-col subpixel-antialiased text-[13px] tracking-wide">
+<body class="bg-slate-100 min-h-screen text-slate-900 font-sans antialiased">
 
-    <!-- DISPATCHED EMAIL ALERTS TOAST -->
-    <div id="email-toast" class="fixed left-1/2 -translate-x-1/2 top-4 max-w-sm w-full bg-slate-900 text-white rounded-lg shadow-xl p-4 border border-slate-800 z-50 hidden">
-        <div class="flex items-start space-x-3">
-            <div class="bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded font-bold text-[10px] uppercase tracking-wider">Mail Alert</div>
-            <div class="flex-1 min-w-0">
-                <span class="text-[12px] font-bold text-emerald-400 block truncate">UNIOSUN Admissions</span>
-                <span id="email-toast-subj" class="text-[11px] font-semibold text-slate-200 block truncate">Slip Registration Confirmed</span>
-                <p class="text-[11px] text-slate-400 mt-0.5 leading-normal">A confirmation copy has been transmitted successfully to your email inbox.</p>
+    <header class="bg-emerald-800 text-white shadow-md border-b-4 border-amber-400">
+        <div class="max-w-5xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-center sm:text-left">
+                <h1 class="text-xl sm:text-2xl font-black tracking-wide uppercase">Osun State University</h1>
+                <p class="text-[11px] sm:text-xs text-emerald-200 font-bold uppercase tracking-widest mt-0.5">Post-UTME Admission Screening Portal — 2026 Registry</p>
             </div>
-            <button onclick="document.getElementById('email-toast').classList.add('hidden')" class="text-slate-400 hover:text-white font-bold text-sm">×</button>
-        </div>
-    </div>
-
-    <!-- HEADER NAVIGATION BAR -->
-    <header class="bg-emerald-800 text-white px-6 py-3.5 flex flex-col sm:flex-row justify-between items-center no-print shadow-md gap-3">
-        <div class="flex items-center space-x-3">
-            <img src="uniosunlogo.jpg" alt="UNIOSUN Logo" class="h-8 bg-white p-0.5 rounded">
-            <div>
-                <span class="text-base font-bold block leading-none">Osun State University</span>
-                <span class="text-[11px] text-amber-300 font-medium tracking-wider uppercase block mt-1">Post-UTME Screening Portal</span>
+            <div class="flex gap-2 bg-emerald-950/40 p-1 rounded border border-emerald-700/50">
+                <button id="view-portal-btn" class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs">Portal System</button>
+                <button id="view-admin-btn" class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white">Admin Bench</button>
             </div>
-        </div>
-        <div class="flex items-center space-x-1 bg-emerald-900/60 p-1 rounded border border-emerald-700/50">
-            <button id="view-portal-btn" class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs">Applicant Portal</button>
-            <button id="view-admin-btn" class="px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white">Admissions Admin</button>
         </div>
     </header>
 
-    <!-- CORE APPLICANT CONTAINER WRAPPER -->
-    <main id="portal-view-container" class="flex-1 max-w-xl w-full mx-auto p-4 pt-12 mt-4 block transition-all">
-        
-        <!-- STEP 1: UNIFIED SINGLE CARD (REGISTRATION & TRACKING TOGETHER) -->
-        <div id="step-1" class="space-y-6 no-print">
-            <section class="bg-white rounded-lg p-6 shadow-md border border-slate-200">
-                <h2 class="text-sm font-bold mb-1 text-emerald-800 uppercase tracking-wide">Post-UTME Screening Portal</h2>
-                <p class="text-slate-600 text-[12px] mb-5">Enter your JAMB Registration Number below to start a new application or track your admission status.</p>
-                
+    <div id="email-toast" class="hidden fixed top-5 right-5 z-50 max-w-sm bg-slate-900 text-white rounded-lg shadow-xl border-l-4 border-emerald-500 p-4 transition-all animate-bounce">
+        <div class="flex items-start gap-3">
+            <span class="text-emerald-400 text-lg">✓</span>
+            <div>
+                <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Notification Dispatched</h5>
+                <p class="text-[11px] text-slate-300 mt-0.5">The official verification clearance loop message has been successfully issued to the applicant's inbox destination.</p>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+
+        <section id="portal-view-container" class="space-y-6">
+            
+            <div id="step-1" class="bg-white rounded-xl shadow-xs border border-slate-200 p-6 max-w-md mx-auto">
+                <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider border-b pb-2 mb-4">Candidate Screening Gate</h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-2">JAMB Registration Number</label>
-                        <input type="text" id="jamb-num" placeholder="e.g., 20261122AA" class="w-full px-3 py-2.5 border border-slate-300 rounded focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none uppercase font-mono tracking-widest text-[13px] text-slate-800 font-bold shadow-xs">
-                        <p id="step-1-error" class="text-red-600 text-[12px] mt-1.5 hidden font-medium"></p>
+                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-1.5 tracking-wider">JAMB Registration Reference Number</label>
+                        <input type="text" id="jamb-num" placeholder="e.g., 202610234567AB" class="w-full px-3 py-2 border border-slate-300 rounded font-mono font-bold tracking-widest text-sm text-slate-800 uppercase outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700">
                     </div>
                     
-                    <!-- Primary Registration Button -->
-                    <button id="btn-verify" type="button" class="w-full bg-emerald-800 hover:bg-emerald-900 text-amber-300 hover:text-white font-bold py-3 rounded shadow-sm transition-all uppercase tracking-wider text-[11px]">
-                        Start New Application
-                    </button>
-
-                    <!-- Simple, clean gap separating actions -->
-                    <div class="relative flex py-2 items-center">
-                        <div class="flex-grow border-t border-slate-200"></div>
-                        <span class="flex-shrink mx-4 text-slate-400 text-[10px] uppercase tracking-widest">or status tracking</span>
-                        <div class="flex-grow border-t border-slate-200"></div>
+                    <p id="step-1-error" class="hidden text-xs text-red-600 font-semibold bg-red-50 border border-red-200 p-2 rounded"></p>
+                    
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button id="btn-verify" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-black uppercase tracking-wider py-2.5 rounded shadow-sm transition-all">Apply Fresh</button>
+                        <button id="btn-track" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase tracking-wider py-2.5 rounded shadow-sm transition-all">Track Status</button>
                     </div>
-
-                    <!-- Plain, Low-Opacity Subtle Tracking Button -->
-                    <button id="btn-track" type="button" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300/70 font-bold py-2.5 rounded transition-all uppercase tracking-wider text-[11px]">
-                        Track Admission Process
-                    </button>
                 </div>
 
-                <!-- LIVE VISUAL TRACKING TIMELINE AREA -->
-                <div id="tracking-card" class="mt-6 border border-slate-200 rounded-lg p-4 bg-slate-50/80 hidden">
-                    <div class="mb-4 pb-2 border-b">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase block">Candidate Profile</span>
-                        <span id="track-name" class="text-xs font-black text-slate-900">...</span>
-                        <span id="track-ref" class="text-[10px] text-slate-500 font-mono block mt-0.5">Ref: ...</span>
+                <div id="tracking-card" class="hidden mt-6 border-t pt-6 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded border border-slate-200/80">
+                        <h4 id="track-name" class="text-xs font-black text-slate-800 uppercase tracking-wide">STUDENT METRIC CORE</h4>
+                        <span id="track-ref" class="text-[10px] font-mono font-bold text-slate-500 block mt-0.5">REF ID MAP: ...</span>
                     </div>
                     
-                    <!-- Clean Text Timeline (No Icons) -->
-                    <div class="space-y-4 relative before:absolute before:bottom-2 before:top-2 before:left-2 before:w-0.5 before:bg-slate-200">
-                        <div class="flex items-start space-x-4 relative">
-                            <div id="dot-step1" class="w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10"></div>
-                            <div>
-                                <span class="text-[12px] font-bold text-slate-800 block">Form Submitted & Paid</span>
-                                <span class="text-[11px] text-emerald-700 block">Portal gateway clearance logged.</span>
-                            </div>
+                    <div class="relative pl-6 space-y-5 border-l-2 border-slate-200 ml-2 mt-2">
+                        <div class="relative">
+                            <div id="dot-step1" class="w-2.5 h-2.5 rounded-full bg-emerald-600 absolute -left-[29.5px] mt-1.5 ml-1 z-10"></div>
+                            <h5 class="text-xs font-black text-slate-800 uppercase">Screening Profile Captured</h5>
+                            <span class="text-[11px] text-emerald-700 font-medium block">Form parameters and Paystack ledger verified online.</span>
                         </div>
-                        <div class="flex items-start space-x-4 relative">
-                            <div id="dot-step2" class="w-2.5 h-2.5 rounded-full bg-slate-300 mt-1.5 ml-1 z-10"></div>
-                            <div>
-                                <span class="text-[12px] font-bold text-slate-800 block">Academic Credential Review</span>
-                                <span id="desc-step2" class="text-[11px] text-slate-500 block">Credentials queued for review.</span>
-                            </div>
+                        <div class="relative">
+                            <div id="dot-step2" class="w-2.5 h-2.5 rounded-full bg-slate-300 absolute -left-[29.5px] mt-1.5 ml-1 z-10"></div>
+                            <h5 class="text-xs font-black text-slate-800 uppercase">O'Level Metric Evaluation</h5>
+                            <span id="desc-step2" class="text-[11px] text-slate-500 block">Credentials queued for admissions board review.</span>
                         </div>
-                        <div class="flex items-start space-x-4 relative">
-                            <div id="dot-step3" class="w-2.5 h-2.5 rounded-full bg-slate-300 mt-1.5 ml-1 z-10"></div>
-                            <div>
-                                <span class="text-[12px] font-bold text-slate-800 block">Final Admission Verdict</span>
-                                <span id="desc-step3" class="text-[11px] font-bold text-slate-500 block">Awaiting board decision.</span>
-                            </div>
+                        <div class="relative">
+                            <div id="dot-step3" class="w-2.5 h-2.5 rounded-full bg-slate-300 absolute -left-[29.5px] mt-1.5 ml-1 z-10"></div>
+                            <h5 class="text-xs font-black text-slate-800 uppercase">Registry Status Final Verdict</h5>
+                            <span id="desc-step3" class="text-[11px] text-slate-500 block">Awaiting board decision loop updates.</span>
                         </div>
                     </div>
 
-                    <div class="mt-5 pt-3 border-t flex justify-end">
-                        <button id="btn-reprint" class="bg-emerald-800 text-white font-bold px-3 py-1.5 rounded text-[11px] uppercase hover:bg-emerald-950">Reprint Slip</button>
-                    </div>
+                    <button id="btn-reprint" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider py-2 rounded shadow-xs transition-all mt-2">Reprint Slip Document</button>
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <!-- STEP 2: SCREENING FORM -->
-        <section id="step-2" class="bg-white rounded-lg p-6 shadow-md border border-slate-200 hidden no-print">
-            <h2 class="text-sm font-bold mb-4 pb-1.5 border-b border-slate-200 text-emerald-800 uppercase tracking-wide">UNIOSUN Post-UTME Screening Form</h2>
-            
-            <form id="portal-form" class="space-y-4">
-                <!-- Biodata Information -->
-                <div>
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-emerald-700 border-l-2 border-amber-400 pl-2 mb-3">a) Biodata Information</h3>
-                    <div class="grid grid-cols-1 gap-3">
+            <form id="portal-form" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6 max-w-4xl mx-auto">
+                <div class="border-b pb-2">
+                    <h2 class="text-sm font-black text-emerald-900 uppercase tracking-wider">Candidate Registry Parameters Entry Matrix</h2>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">Fill out all system variables accurately. Double check spelling layout matrix before initiating checkout.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b pb-1">1. Personal Identity Profile</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Full Name (Surname First)</label>
-                            <input type="text" id="bio-name" placeholder="OGUNDELE AISHAT OMOLAYO" required class="w-full px-3 py-2 border border-slate-300 rounded text-[13px] font-medium text-slate-800 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 outline-none">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Gender</label>
-                                <select id="bio-gender" required class="w-full px-3 py-2 border border-slate-300 rounded text-[13px] font-medium text-slate-800 outline-none focus:border-emerald-700 bg-white">
-                                    <option value="">-- Select --</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Phone Number</label>
-                                <input type="tel" id="bio-phone" placeholder="e.g., 08012345678" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
-                            </div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Full Applicant Name</label>
+                            <input type="text" id="bio-name" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Email Address</label>
-                            <input type="email" id="bio-email" placeholder="applicant@example.com" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Gender Specification</label>
+                            <select id="bio-gender" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold bg-white outline-none focus:border-emerald-700">
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Home Address</label>
-                            <input type="text" id="bio-address" placeholder="e.g., No 12, Osogbo Road" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Active Email Destination</label>
+                            <input type="email" id="bio-email" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold lowercase outline-none focus:border-emerald-700">
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">State of Origin</label>
-                                <input type="text" id="bio-state" placeholder="Ogun" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Local Government (LGA)</label>
-                                <input type="text" id="bio-lga" placeholder="e.g., Abeokuta South" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
-                            </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Mobile Phone Line</label>
+                            <input type="tel" id="bio-phone" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold outline-none focus:border-emerald-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">State of Origin</label>
+                            <input type="text" id="bio-state" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Local Govt. Area</label>
+                            <input type="text" id="bio-lga" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Permanent Home Address</label>
+                            <input type="text" id="bio-address" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
                         </div>
                     </div>
                 </div>
 
-                <!-- Next of Kin -->
-                <div class="pt-4 border-t border-slate-200">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-emerald-700 border-l-2 border-amber-400 pl-2 mb-3">b) Next of Kin Information</h3>
-                    <div class="grid grid-cols-1 gap-3">
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b pb-1">2. Next of Kin Contact Map</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Next of Kin Name</label>
-                            <input type="text" id="nok-name" placeholder="OGUNDELE SHAKIRU" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Relationship</label>
-                                <select id="nok-relation" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 outline-none focus:border-emerald-700 bg-white">
-                                    <option value="">-- Select --</option>
-                                    <option value="Father">Father</option>
-                                    <option value="Mother">Mother</option>
-                                    <option value="Guardian">Guardian</option>
-                                    <option value="Brother">Brother</option>
-                                    <option value="Sister">Sister</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Next of Kin Phone</label>
-                                <input type="tel" id="nok-phone" placeholder="e.g., 08087654321" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
-                            </div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Full Kin Name</label>
+                            <input type="text" id="nok-name" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Next of Kin Home Address</label>
-                            <input type="text" id="nok-address" placeholder="Kin Address Details" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-medium text-slate-800 rounded outline-none focus:border-emerald-700">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Relationship Binding</label>
+                            <select id="nok-relation" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold bg-white outline-none focus:border-emerald-700">
+                                <option value="">-- Choose Relation --</option>
+                                <option value="Father">Father</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Brother">Brother</option>
+                                <option value="Sister">Sister</option>
+                                <option value="Guardian">Guardian</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Emergency Mobile Line</label>
+                            <input type="tel" id="nok-phone" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold outline-none focus:border-emerald-700">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Kin Residential Location Address</label>
+                            <input type="text" id="nok-address" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-semibold uppercase outline-none focus:border-emerald-700">
                         </div>
                     </div>
                 </div>
 
-                <!-- Academic choice & O'Level Results Data Rows -->
-                <div class="pt-4 border-t border-slate-200">
-                    <h3 class="text-[12px] font-bold uppercase tracking-wider text-emerald-700 border-l-2 border-amber-400 pl-2 mb-3">c) Academic Records</h3>
-                    <div class="grid grid-cols-3 gap-2.5 mb-3">
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b pb-1">3. Institutional Choice Profile</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">UTME Score</label>
-                            <input type="number" id="acad-score" min="100" max="400" placeholder="e.g., 240" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-bold text-slate-800 rounded outline-none focus:border-emerald-700">
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Aggregated UTME Score</label>
+                            <input type="number" id="acad-score" min="160" max="400" placeholder="Minimum cutoff requirement: 160" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-mono font-bold outline-none focus:border-emerald-700">
                         </div>
-                        <div class="col-span-2">
-                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Course Choice</label>
-                            <select id="acad-course" required class="w-full px-3 py-2 border border-slate-300 text-[13px] font-semibold text-slate-800 rounded outline-none focus:border-emerald-700 bg-white">
-                                <option value="">-- Select Course --</option>
-                                <option value="B.Sc. Computer Science">B.Sc. Computer Science</option>
-                                <option value="B.Sc. Cybersecurity">B.Sc. Cybersecurity</option>
-                                <option value="B.Sc. Information Technology">B.Sc. Information Technology</option>
-                                <option value="B.Sc. Nursing Science">B.Sc. Nursing Science</option>
-                                <option value="Bachelor of Laws (LL.B)">Bachelor of Laws (LL.B)</option>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Proposed Academic Program Course Study</label>
+                            <select id="acad-course" required class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs text-slate-800 font-bold bg-white outline-none focus:border-emerald-700">
+                                <option value="">-- Choose Department Course --</option>
+                                <option value="Nursing Science">Nursing Science</option>
+                                <option value="Medical Laboratory Science">Medical Laboratory Science</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Accounting">Accounting</option>
+                                <option value="Business Administration">Business Administration</option>
                             </select>
                         </div>
                     </div>
-
-                    <!-- Multi-Sitting Configuration Matrix Row Setup -->
-                    <div class="mt-4 bg-emerald-50/50 p-4 rounded border border-emerald-100">
-                        <div class="mb-3">
-                            <label class="block text-[11px] font-bold text-emerald-950 uppercase tracking-wide">O'Level Subjects Configuration Matrix</label>
-                        </div>
-                        <div class="space-y-2.5" id="olevel-rows"></div>
-                    </div>
-
-                    <div class="mt-4 flex items-start space-x-2">
-                        <input type="checkbox" id="declaration" required class="w-4 h-4 text-emerald-800 accent-emerald-800 border-slate-300 mt-0.5">
-                        <label for="declaration" class="text-[12px] text-slate-600 leading-relaxed font-medium">
-                            I declare that all the information provided above is true and correct.
-                        </label>
-                    </div>
                 </div>
 
-                <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-amber-300 hover:text-white font-bold py-3 rounded shadow-md transition-all uppercase tracking-wider text-[12px]">
-                    Pay via Paystack Gateway & Print Slip
-                </button>
+                <div class="space-y-4">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider border-b pb-1">4. Secondary Education O'Level Core Matrix Credentials</h3>
+                    <div id="olevel-rows" class="space-y-3 bg-slate-50 p-4 rounded border border-slate-200">
+                        </div>
+                </div>
+
+                <div class="border-t pt-4 flex justify-end">
+                    <button type="submit" class="bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-black uppercase tracking-wider px-6 py-2.5 rounded shadow transition-all">Proceed to Gateway Checkout (₦2,500)</button>
+                </div>
             </form>
         </section>
-    </main>
 
-    <!-- INTERFACE LAYER: SLIP PRINT VIEW -->
-    <main id="slip-view-container" class="flex-1 max-w-3xl w-full mx-auto p-4 pt-12 mt-8 hidden transition-all">
-        <section id="step-3" class="bg-white rounded-xl p-8 shadow-xl border border-slate-300 print-slip">
-            
-            <!-- Logo Header Matrix Layout -->
-            <div class="flex items-center justify-between border-b-4 border-emerald-800 pb-4 mb-6">
-                <div class="flex items-center space-x-4">
-                    <img src="uniosunlogo.jpg" alt="UNIOSUN Logo" class="h-16 w-auto object-contain bg-emerald-800 p-1 rounded-sm">
+        <section id="slip-view-container" class="hidden max-w-2xl mx-auto space-y-4">
+            <div class="bg-white rounded-xl shadow-md border p-6 space-y-6" id="printable-area">
+                
+                <div class="flex items-center gap-4 border-b pb-4">
+                    <div class="w-12 h-12 bg-emerald-800 rounded-full flex items-center justify-center text-white font-black text-sm border-2 border-amber-400 shadow-xs">U</div>
                     <div>
-                        <h1 class="text-xl font-black tracking-tight text-emerald-900 uppercase leading-none">Osun State University</h1>
-                        <p class="text-[11px] font-bold tracking-widest text-amber-600 uppercase mt-1.5">Post-UTME Admission Screening Acknowledgment Slip</p>
+                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Osun State University Admissions Office</h3>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Post-UTME Screening Processing Clearance Verification Pass</p>
                     </div>
                 </div>
-                <div class="w-24 h-28 border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[10px] font-bold text-slate-400 p-2 text-center rounded no-print">
-                    <span>Affix Passport Photograph</span>
+
+                <div id="slip-content" class="space-y-5">
+                    </div>
+
+                <div class="border-t pt-4 text-center">
+                    <p class="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Generated securely via the UNIOSUN Admissions Portal Architecture Instance. Verify status online using your reference token.</p>
                 </div>
             </div>
 
-            <!-- Content Load Target -->
-            <div id="slip-content" class="text-[13px] text-slate-900 leading-relaxed space-y-6"></div>
-
-            <!-- Bottom Interface Controllers -->
-            <div class="mt-8 pt-4 border-t border-slate-200 flex space-x-3 no-print">
-                <button id="btn-lock" class="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-lg shadow-md transition-all uppercase tracking-wider text-[12px]">Lock & Validate Details</button>
-                <button onclick="window.print()" id="btn-print" class="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white font-black py-3 rounded-lg shadow-md transition-all uppercase tracking-wider text-[12px] hidden">Print Acknowledgment Slip</button>
+            <div class="flex justify-between items-center bg-slate-800 text-white p-3 rounded-lg shadow-sm">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-2">Document Status: Unlocked Verification Mode</span>
+                <div class="flex gap-2">
+                    <button id="btn-lock" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded transition-all">Lock & Verify Credentials</button>
+                    <button id="btn-print" onclick="window.print()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider px-5 py-1.5 rounded transition-all">Print Document Pass</button>
+                </div>
             </div>
         </section>
-    </main>
 
-    <!-- ADMIN PANEL MANAGER BOARD -->
-    <main id="admin-view-container" class="flex-1 max-w-5xl w-full mx-auto p-4 pt-12 mt-8 hidden">
-        <div class="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
-            <div class="bg-slate-900 text-white p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800">
+        <section id="admin-view-container" class="hidden bg-white rounded-xl shadow-md border p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-3 gap-2">
                 <div>
-                    <h2 class="text-sm font-bold tracking-wide text-amber-400 uppercase">UNIOSUN Admissions Board Manager</h2>
+                    <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider">Admissions Council Overview Grid Terminal</h2>
+                    <p class="text-[11px] text-slate-400 font-medium">Verify submissions, manipulate candidates approval routing status, or wipe instances clear.</p>
                 </div>
-                <div class="flex items-center space-x-2 w-full sm:w-auto">
-                    <button id="admin-clear-all" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-4 py-2 rounded shadow-xs transition-all uppercase tracking-wider">Clear All</button>
-                </div>
+                <button id="admin-clear-all" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded transition-all">Wipe Global Registry</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-[12px]">
+
+            <div class="overflow-x-auto rounded-lg border">
+                <table class="w-full text-left text-xs border-collapse">
                     <thead>
-                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase p-3">
-                            <th class="p-3">JAMB Reg No</th>
-                            <th class="p-3">Applicant Name</th>
-                            <th class="p-3">UTME</th>
-                            <th class="p-3">Selected Course</th>
-                            <th class="p-3">Process Status Control</th>
-                            <th class="p-3 text-center">Action</th>
+                        <tr class="bg-slate-100 font-bold border-b text-slate-700 tracking-wider uppercase text-[10px]">
+                            <th class="p-3">JAMB Number</th>
+                            <th class="p-3">Candidate Fullname</th>
+                            <th class="p-3">UTME Score</th>
+                            <th class="p-3">Department Choice</th>
+                            <th class="p-3">Review Action Status</th>
+                            <th class="p-3 text-center">Data Maintenance</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-table-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                    <tbody id="admin-table-body" class="divide-y">
+                        </tbody>
                 </table>
             </div>
-        </div>
+        </section>
+
     </main>
 
+    <script src="https://js.paystack.co/v2/inline.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
