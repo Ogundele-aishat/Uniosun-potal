@@ -41,17 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
 
     // Render OLevel Subjects Input Form Block Matrix
+    // Render OLevel Subjects Input Form Block Matrix (Restored Layout)
     if (olevelRowsContainer) {
         olevelRowsContainer.innerHTML = REQUIRED_SUBJECTS.map((subject, index) => `
-            <div class="grid grid-cols-3 gap-2 items-center">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
                 <span class="text-[12px] font-semibold text-slate-700">${subject}</span>
-                <input type="text" placeholder="WAEC 2025" required id="exam-${index}" class="px-2 py-1.5 border border-slate-300 text-xs font-medium rounded text-slate-800 uppercase outline-none">
-                <select id="grade-${index}" required class="px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none">
-                    <option value="">Grade</option>
-                    ${['A1', 'B2', 'B3', 'C4', 'C5', 'C6', 'D7', 'E8', 'F9'].map(g => `<option value="${g}">${g}</option>`).join('')}
-                </select>
+                <div>
+                    <input type="text" placeholder="e.g., WAEC 2025" required id="exam-${index}" class="w-full px-2 py-1.5 border border-slate-300 text-xs font-medium rounded text-slate-800 uppercase outline-none focus:border-emerald-700">
+                </div>
+                <div>
+                    <select id="grade-${index}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                        <option value="">-- Grade --</option>
+                        ${['A1', 'B2', 'B3', 'C4', 'C5', 'C6', 'D7', 'E8', 'F9'].map(g => `<option value="${g}">${g}</option>`).join('')}
+                    </select>
+                </div>
             </div>
         `).join('');
+    }
     }
 
     // Tab Views Control Core Routing Switchboards
