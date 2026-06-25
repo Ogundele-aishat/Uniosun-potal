@@ -1,311 +1,370 @@
-// --- STATE MANAGEMENT ---
-let localDb = JSON.parse(localStorage.getItem('uniosun_portal_db')) || [];
-let activeJambNumber = "";
+// INITIALIZE EMAILJS WITH YOUR PUBLIC KEY
+emailjs.init("IiipzsMLoYhdtmUm7");
 
-const coreSubjects = ["English Language", "Mathematics", "Subject 3 Choice", "Subject 4 Choice", "Subject 5 Choice"];
-const gradeOptions = ["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"];
+// SIMULATED SYSTEM LOCAL DATABASE STORE
+let db = JSON.parse(localStorage.getItem('uniosun_db')) || [];
+let selectedTrackedRecord = null; 
 
-// --- DOM ELEMENT SELECTORS ---
-const viewPortalBtn = document.getElementById('view-portal-btn');
-const viewAdminBtn = document.getElementById('view-admin-btn');
-const portalViewContainer = document.getElementById('portal-view-container');
-const adminViewContainer = document.getElementById('admin-view-container');
-
+// CORE WINDOW SELECTORS INTERFACE 
 const step1 = document.getElementById('step-1');
 const step2 = document.getElementById('step-2');
 const step3 = document.getElementById('step-3');
+const portalContainer = document.getElementById('portal-view-container');
+const slipContainer = document.getElementById('slip-view-container');
+const adminContainer = document.getElementById('admin-view-container');
 
-const verifyBtn = document.getElementById('btn-verify');
-const jambInput = document.getElementById('jamb-num');
-const step1Error = document.getElementById('step-1-error');
-const portalForm = document.getElementById('portal-form');
-const olevelRowsContainer = document.getElementById('olevel-rows');
-const slipContent = document.getElementById('slip-content');
-const lockBtn = document.getElementById('btn-lock');
-const printBtn = document.getElementById('btn-print');
+// DYNAMIC O'LEVEL SUBJECT CONFIGURATOR BUILDER MATRIX
+const olevelContainer = document.getElementById('olevel-rows');
+const requiredSubjects = [
+    "English Language", "Mathematics", "Physics", "Chemistry", "Biology", 
+    "Agricultural Science", "Geography", "Economics", "Government"
+];
+const gradeValues = { "A1":6, "B2":5, "B3":4, "C4":3, "C5":2, "C6":1, "D7":0, "E8":0, "F9":0 };
 
-const adminTableBody = document.getElementById('admin-table-body');
-const adminEmptyState = document.getElementById('admin-empty-state');
-const metricTotal = document.getElementById('metric-total');
-const metricAvgJamb = document.getElementById('metric-avg-jamb');
-const metricFemale = document.getElementById('metric-female');
-const metricOgun = document.getElementById('metric-ogun');
-
-// --- APP INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    generateOlevelRows();
-    updateAdminDashboard();
-});
-
-// --- NAVIGATION SWITCHING ---
-viewPortalBtn.addEventListener('click', () => toggleView('portal'));
-viewAdminBtn.addEventListener('click', () => {
-    toggleView('admin');
-    updateAdminDashboard();
-});
-
-function toggleView(view) {
-    if (view === 'portal') {
-        portalViewContainer.classList.remove('hidden');
-        adminViewContainer.classList.add('hidden');
-        viewPortalBtn.className = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-sm";
-        viewAdminBtn.className = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
-    } else {
-        portalViewContainer.classList.add('hidden');
-        adminViewContainer.classList.remove('hidden');
-        viewAdminBtn.className = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-sm";
-        viewPortalBtn.className = "px-3 py-1.5 rounded text-xs font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
-    }
+// Auto-inject subject rows inside form
+for (let i = 1; i <= 5; i++) {
+    let row = document.createElement('div');
+    row.className = "grid grid-cols-12 gap-2 items-center";
+    row.innerHTML = `
+        <div class="col-span-6">
+            <select required class="w-full px-2 py-1.5 border border-slate-300 rounded text-[12px] font-medium bg-white outline-none">
+                <option value="">-- Subject ${i} --</option>
+                ${requiredSubjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+        </div>
+        <div class="col-span-3">
+            <select required class="w-full px-2 py-1.5 border border-slate-300 rounded text-[12px] font-medium bg-white outline-none font-bold text-emerald-800">
+                <option value="">Grade</option>
+                ${Object.keys(gradeValues).map(g => `<option value="${g}">${g}</option>`).join('')}
+            </select>
+        </div>
+        <div class="col-span-3">
+            <select required class="w-full px-2 py-1.5 border border-slate-300 rounded text-[11px] bg-white outline-none font-semibold">
+                <option value="1">1st Sit</option>
+                <option value="2">2nd Sit</option>
+            </select>
+        </div>
+    `;
+    olevelContainer.appendChild(row);
 }
 
-// --- DYNAMIC O'LEVEL FORM GENERATION ---
-function generateOlevelRows() {
-    olevelRowsContainer.innerHTML = "";
-    coreSubjects.forEach((subject, idx) => {
-        const row = document.createElement('div');
-        row.className = "flex flex-col sm:flex-row items-center gap-2 bg-white p-2 rounded border border-slate-200/60";
-        
-        let subjectField = `<input type="text" value="${idx < 2 ? subject : ''}" placeholder="Enter Subject Name" required ${idx < 2 ? 'readonly class="w-full sm:w-2/3 px-2 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded outline-none border"' : 'class="w-full sm:w-2/3 px-2 py-1.5 text-xs bg-white rounded outline-none border focus:border-emerald-700"' } data-role="subject">`;
-        let gradeField = `<select required class="w-full sm:w-1/3 px-2 py-1.5 text-xs bg-white rounded outline-none border focus:border-emerald-700" data-role="grade">
-            <option value="">Grade</option>
-            ${gradeOptions.map(g => `<option value="${g}">${g}</option>`).join('')}
-        </select>`;
-
-        row.innerHTML = subjectField + gradeField;
-        olevelRowsContainer.appendChild(row);
-    });
-}
-
-// --- STEP 1: VERIFY/LOGIN ENTRY ---
-verifyBtn.addEventListener('click', () => {
-    const value = jambInput.value.trim().toUpperCase();
-    if (value.length < 5) {
-        step1Error.textContent = "Please enter a valid academic registration number reference.";
-        step1Error.classList.remove('hidden');
+// UNIFIED INPUT TRIGGER: START NEW REGISTRATION 
+document.getElementById('btn-verify').addEventListener('click', () => {
+    const jNum = document.getElementById('jamb-num').value.trim().toUpperCase();
+    const errorEl = document.getElementById('step-1-error');
+    
+    if (!jNum || jNum.length < 7) {
+        errorEl.textContent = "Kindly key in a valid authentic standard JAMB Registration Number.";
+        errorEl.classList.remove('hidden');
         return;
     }
-    step1Error.classList.add('hidden');
-    activeJambNumber = value;
     
-    // Check if user already exists in local DB to allow easy login access
-    const existingCandidate = localDb.find(c => c.jambNo === activeJambNumber);
-    if (existingCandidate) {
-        populateFormDetails(existingCandidate);
-    } else {
-        // Clear previous input contents if it's a completely new registration attempt
-        portalForm.reset();
-        generateOlevelRows();
+    const existing = db.find(item => item.jambNumber === jNum);
+    if(existing) {
+        errorEl.textContent = "This JAMB Number has already registered! Click 'Track Admission Process' to view its timeline.";
+        errorEl.classList.remove('hidden');
+        return;
     }
-
+    
+    errorEl.classList.add('hidden');
     step1.classList.add('hidden');
     step2.classList.remove('hidden');
 });
 
-function populateFormDetails(candidate) {
-    document.getElementById('bio-name').value = candidate.name;
-    document.getElementById('bio-gender').value = candidate.gender;
-    document.getElementById('bio-phone').value = candidate.phone;
-    document.getElementById('bio-address').value = candidate.address;
-    document.getElementById('bio-state').value = candidate.state;
-    document.getElementById('bio-lga').value = candidate.lga;
-    document.getElementById('nok-name').value = candidate.nokName;
-    document.getElementById('nok-relation').value = candidate.nokRelation;
-    document.getElementById('nok-phone').value = candidate.nokPhone;
-    document.getElementById('nok-address').value = candidate.nokAddress;
-    document.getElementById('acad-score').value = candidate.utmeScore;
-    document.getElementById('acad-course').value = candidate.course;
-}
+// FIXED: NOW READS FROM THE EXACT SAME UNIFIED SINGLE INPUT FIELD (#jamb-num)
+document.getElementById('btn-track').addEventListener('click', () => {
+    const jNum = document.getElementById('jamb-num').value.trim().toUpperCase();
+    const errorEl = document.getElementById('step-1-error');
+    const trackingCard = document.getElementById('tracking-card');
+    
+    if (!jNum || jNum.length < 7) {
+        errorEl.textContent = "Kindly enter your JAMB Registration Number inside the input area before tracking.";
+        errorEl.classList.remove('hidden');
+        trackingCard.classList.add('hidden');
+        return;
+    }
 
-// --- STEP 2: FORM HANDLING & PAYSTACK OVERLAY GATEWAY ---
-portalForm.addEventListener('submit', (e) => {
+    const record = db.find(item => item.jambNumber === jNum);
+    if (!record) {
+        errorEl.textContent = "No profile found matching this number on our database registry.";
+        errorEl.classList.remove('hidden');
+        trackingCard.classList.add('hidden');
+        return;
+    }
+
+    errorEl.classList.add('hidden');
+    selectedTrackedRecord = record;
+    
+    document.getElementById('track-name').textContent = record.name;
+    document.getElementById('track-ref').textContent = `Ref: ${record.paymentRef}`;
+    
+    const dot2 = document.getElementById('dot-step2');
+    const desc2 = document.getElementById('desc-step2');
+    const dot3 = document.getElementById('dot-step3');
+    const desc3 = document.getElementById('desc-step3');
+
+    // Default tracking steps reset setup
+    dot2.className = "w-2.5 h-2.5 rounded-full z-10 bg-slate-300 mt-1.5 ml-1";
+    desc2.className = "text-[11px] text-slate-500 block";
+    desc2.textContent = "Credentials queued for review.";
+    
+    dot3.className = "w-2.5 h-2.5 rounded-full z-10 bg-slate-300 mt-1.5 ml-1";
+    desc3.className = "text-[11px] font-bold text-slate-500 block";
+    desc3.textContent = "Awaiting board decision.";
+
+    if (record.status === "Screening Scheduled") {
+        dot2.className = "w-2.5 h-2.5 rounded-full bg-amber-500 mt-1.5 ml-1 z-10 animate-pulse";
+        desc2.className = "text-[12px] text-amber-700 font-bold block";
+        desc2.textContent = "SCHEDULED: Verified eligible. Report to campus ICT center for physical clearance.";
+    } else if (record.status === "Admitted") {
+        dot2.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+        desc2.className = "text-[11px] text-emerald-700 font-medium block";
+        desc2.textContent = "Verified: O'level qualifications passed validation check.";
+        
+        dot3.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+        desc3.className = "text-[12px] font-black text-emerald-800 block uppercase";
+        desc3.textContent = "CONGRATULATIONS! Provisional Admission Offered.";
+    } else if (record.status === "Not Admitted") {
+        dot2.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+        dot3.className = "w-2.5 h-2.5 rounded-full bg-red-600 mt-1.5 ml-1 z-10";
+        desc3.className = "text-[12px] font-bold text-red-600 block uppercase";
+        desc3.textContent = "Admission review closed. Minimum requirements not met.";
+    } else {
+        dot2.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+        desc2.className = "text-[11px] text-slate-600 font-medium block";
+        desc2.textContent = "Received: Credentials currently undergoing background screening audits.";
+    }
+
+    trackingCard.classList.remove('hidden');
+});
+
+// REPRINT ACTION
+document.getElementById('btn-reprint').addEventListener('click', () => {
+    if (selectedTrackedRecord) {
+        renderSlipReceipt(selectedTrackedRecord);
+        portalContainer.classList.add('hidden');
+        slipContainer.classList.remove('hidden');
+        step3.classList.remove('hidden');
+    }
+});
+
+// FORM SUBMISSION & PAYSTACK INTEGRATION
+document.getElementById('portal-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const phoneInput = document.getElementById('bio-phone').value.trim();
-    const billingEmail = `${activeJambNumber.toLowerCase()}@uniosun-portal.edu.ng`;
-    const screeningCost = 2500; // Administrative Fee in NGN
-
-    const rows = olevelRowsContainer.querySelectorAll('div');
-    const olevelResults = [];
-    rows.forEach(row => {
-        const sub = row.querySelector('[data-role="subject"]').value;
-        const grd = row.querySelector('[data-role="grade"]').value;
-        if(sub && grd) olevelResults.push({ subject: sub, grade: grd });
-    });
+    const emailAddr = document.getElementById('bio-email').value.trim();
+    const applicantName = document.getElementById('bio-name').value.trim().toUpperCase();
+    
+    let olevels = [];
+    let rows = olevelContainer.children;
+    for (let row of rows) {
+        let selects = row.getElementsByTagName('select');
+        if (selects[0].value && selects[1].value) {
+            olevels.push({
+                subject: selects[0].value,
+                grade: selects[1].value,
+                sitting: selects[2].value
+            });
+        }
+    }
 
     const payload = {
-        jambNo: activeJambNumber,
-        name: document.getElementById('bio-name').value.trim().toUpperCase(),
+        jambNumber: document.getElementById('jamb-num').value.trim().toUpperCase(),
+        name: applicantName,
         gender: document.getElementById('bio-gender').value,
-        phone: phoneInput,
-        address: document.getElementById('bio-address').value.trim(),
-        state: document.getElementById('bio-state').value.trim(),
-        lga: document.getElementById('bio-lga').value.trim(),
-        nokName: document.getElementById('nok-name').value.trim().toUpperCase(),
+        phone: document.getElementById('bio-phone').value,
+        email: emailAddr,
+        address: document.getElementById('bio-address').value,
+        state: document.getElementById('bio-state').value,
+        lga: document.getElementById('bio-lga').value,
+        nokName: document.getElementById('nok-name').value.toUpperCase(),
         nokRelation: document.getElementById('nok-relation').value,
-        nokPhone: document.getElementById('nok-phone').value.trim(),
-        nokAddress: document.getElementById('nok-address').value.trim(),
-        utmeScore: parseInt(document.getElementById('acad-score').value),
+        nokPhone: document.getElementById('nok-phone').value,
+        nokAddress: document.getElementById('nok-address').value,
+        jambScore: parseInt(document.getElementById('acad-score').value),
         course: document.getElementById('acad-course').value,
-        sittings: document.querySelector('input[name="sittings"]:checked').value,
-        olevel: olevelResults,
-        paymentRef: ""
+        olevels: olevels,
+        status: "Pending Review", 
+        paymentRef: 'UNIOSUN-' + Math.floor(Math.random() * 8999999 + 1000000)
     };
 
-    // Initialize Paystack Inline Pop-up Modal Frame
-    const paystack = new PaystackPop();
-    paystack.newTransaction({
-        key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Public test key
-        email: billingEmail,
-        amount: screeningCost * 100, // Amount parsed in Kobo
-        currency: 'NGN',
-        onSuccess: function(transaction) {
-            payload.paymentRef = transaction.reference;
-            alert(`Payment Cleared! Reference ID: ${transaction.reference}`);
-            
-            renderSlipReceipt(payload);
-            step2.classList.add('hidden');
-            step3.classList.remove('hidden');
-        },
-        onCancel: function() {
-            alert('Transaction window dismissed. Gateway authentication payment processing is mandatory.');
-        }
-    });
+    const paystackKey = 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed'; 
+
+    try {
+        const handler = PaystackPop.setup({
+            key: paystackKey,
+            email: emailAddr,
+            amount: 300000, 
+            currency: 'NGN',
+            ref: payload.paymentRef,
+            callback: function(response) {
+                completeSuccessfulRegistration(payload);
+            },
+            onClose: function() {
+                alert('Gateway authentication canceled.');
+            }
+        });
+        handler.openIframe();
+    } catch(err) {
+        alert("Could not trigger Paystack gateway panel window.");
+    }
 });
 
-// --- STEP 3: DYNAMIC ACKNOWLEDGEMENT SLIP SLATE GENERATION ---
+function completeSuccessfulRegistration(payload) {
+    db.push(payload);
+    localStorage.setItem('uniosun_db', JSON.stringify(db));
+    
+    const emailParams = {
+        to_email: payload.email,
+        applicant_name: payload.name,
+        jamb_number: payload.jambNumber,
+        course_choice: payload.course,
+        payment_reference: payload.paymentRef,
+        phone_number: payload.phone
+    };
+
+    emailjs.send("service_pc0nsyr", "template_pey3t8n", emailParams)
+        .then(() => { console.log("Email confirmation dispatched!"); })
+        .catch((error) => { console.error("EmailJS failure error:", error); });
+
+    triggerEmailToast(payload.email);
+    renderSlipReceipt(payload);
+    
+    portalContainer.classList.add('hidden');
+    slipContainer.classList.remove('hidden');
+    step2.classList.add('hidden');
+    step3.classList.remove('hidden');
+}
+
 function renderSlipReceipt(data) {
-    slipContent.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-4 rounded-lg border border-slate-200/60">
-            <div>
-                <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2">Registration Baseline</h4>
-                <p class="mb-1"><span class="font-medium text-slate-500">JAMB Reg No:</span> <strong class="font-mono text-slate-900 select-all">${data.jambNo}</strong></p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Full Name:</span> <strong class="text-slate-900">${data.name}</strong></p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Gender Identity:</span> ${data.gender}</p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Phone Contact:</span> ${data.phone}</p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Home Address:</span> ${data.address}</p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Origin Metrics:</span> ${data.lga}, ${data.state} State</p>
+    const slipTarget = document.getElementById('slip-content');
+    let subjectRowsHtml = data.olevels.map(s => `
+        <tr class="border-b border-slate-200">
+            <td class="py-2 font-medium text-slate-800">${s.subject}</td>
+            <td class="py-2 text-center font-bold text-emerald-800">${s.grade}</td>
+            <td class="py-2 text-right text-slate-500 font-medium">${s.sitting === "1" ? "First Sitting" : "Second Sitting"}</td>
+        </tr>
+    `).join('');
+
+    slipTarget.innerHTML = `
+        <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-lg flex flex-col sm:flex-row justify-between gap-2 no-print">
+            <div><span class="text-[11px] uppercase text-slate-500 font-bold block">Transaction Clearing Status</span><strong class="text-emerald-800 text-sm font-black">✓ TRANSACTION CLEARED SUCCESSFUL VIA PAYSTACK</strong></div>
+            <div class="text-left sm:text-right"><span class="text-[11px] uppercase text-slate-500 font-bold block">Current Tracking Process Status</span><strong class="text-amber-700 text-sm font-black uppercase">● ${data.status}</strong></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase text-emerald-800 tracking-wider border-b pb-1">Primary Bio Data</h3>
+                <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Candidate Full Name</span><span class="text-base font-black text-slate-900">${data.name}</span></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">JAMB Registration ID</span><span class="font-mono font-bold text-sm text-slate-900 tracking-wider">${data.jambNumber}</span></div>
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">UTME Score</span><span class="font-bold text-sm text-emerald-800">${data.jambScore} / 400</span></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Gender Structure</span><span class="font-medium">${data.gender}</span></div>
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Phone Number</span><span class="font-medium">${data.phone}</span></div>
+                </div>
+                <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Email Address Contact</span><span class="font-medium">${data.email}</span></div>
             </div>
-            <div>
-                <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2">Academic Choice & Kin</h4>
-                <p class="mb-1"><span class="font-medium text-slate-500">Course Choice:</span> <strong class="text-emerald-900">${data.course}</strong></p>
-                <p class="mb-1"><span class="font-medium text-slate-500">UTME Score:</span> <span class="bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded font-bold">${data.utmeScore}</span></p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Emergency Contact:</span> ${data.nokName} (${data.nokRelation})</p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Kin Hotline:</span> ${data.nokPhone}</p>
-                <p class="mb-1"><span class="font-medium text-slate-500">Gateway Ref:</span> <span class="font-mono text-xs text-emerald-700 bg-emerald-50 px-1 rounded font-bold">${data.paymentRef || 'N/A'}</span></p>
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase text-emerald-800 tracking-wider border-b pb-1">Assigned Institutional Options</h3>
+                <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Selected Choice Course Major</span><span class="text-sm font-bold text-slate-900 bg-amber-100/60 px-1.5 py-0.5 rounded-sm">${data.course}</span></div>
+                <h3 class="text-xs font-black uppercase text-emerald-800 tracking-wider border-b pt-3 pb-1">Emergency Kinship Record</h3>
+                <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Next of Kin Contact Person</span><span class="font-bold text-slate-800">${data.nokName}</span></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Relationship Link</span><span class="font-medium">${data.nokRelation}</span></div>
+                    <div><span class="text-[11px] font-bold text-slate-400 uppercase block">Kin Phone Number</span><span class="font-medium">${data.nokPhone}</span></div>
+                </div>
             </div>
         </div>
-        <div>
-            <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2">Verified O'Level Credentials Matrix (${data.sittings} Sitting)</h4>
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                ${data.olevel.map(item => `
-                    <div class="bg-white border p-2 rounded shadow-xs text-center">
-                        <div class="text-[10px] text-slate-400 font-bold uppercase truncate" title="${item.subject}">${item.subject}</div>
-                        <div class="text-base font-black text-slate-800 mt-0.5">${item.grade}</div>
-                    </div>
-                `).join('')}
-            </div>
+        <div class="pt-4">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b-2 border-slate-300 text-slate-500 font-bold uppercase text-[11px]">
+                        <th class="pb-1.5">Registered Academic Subject</th>
+                        <th class="pb-1.5 text-center">Earned Grade</th>
+                        <th class="pb-1.5 text-right">Sitting Sequence</th>
+                    </tr>
+                </thead>
+                <tbody>${subjectRowsHtml}</tbody>
+            </table>
         </div>
     `;
-
-    // Ensure buttons switch status visibility properly when viewing a pre-saved slip setup
-    lockBtn.classList.remove('hidden');
-    printBtn.classList.add('hidden');
-
-    lockBtn.onclick = () => saveRecordToDatabase(data);
 }
 
-function saveRecordToDatabase(data) {
-    localDb = localDb.filter(record => record.jambNo !== data.jambNo);
-    localDb.push(data);
-    localStorage.setItem('uniosun_portal_db', JSON.stringify(localDb));
-    
-    alert("Application data configurations locked successfully. Printing access enabled.");
-    lockBtn.classList.add('hidden');
-    printBtn.classList.remove('hidden');
-}
-
-// --- ADMISSIONS BOARD ADMIN ANALYTICS ---
-function updateAdminDashboard() {
-    adminTableBody.innerHTML = "";
-    
-    if (localDb.length === 0) {
-        adminEmptyState.classList.remove('hidden');
-        metricTotal.textContent = "0";
-        metricAvgJamb.textContent = "0";
-        metricFemale.textContent = "0";
-        metricOgun.textContent = "0";
-        return;
-    }
-    
-    adminEmptyState.classList.add('hidden');
-    
-    let totalJambScore = 0;
-    let femaleCount = 0;
-    let ogunCount = 0;
-
-    localDb.forEach(candidate => {
-        totalJambScore += candidate.utmeScore;
-        if(candidate.gender === "Female") femaleCount++;
-        if(candidate.state.toLowerCase().replace(/\s*state\s*/g, '') === "ogun") ogunCount++;
-
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 border-b border-slate-200/60 transition-colors";
-        tr.innerHTML = `
-            <td class="p-4 font-mono font-bold tracking-wider text-slate-900">${candidate.jambNo}</td>
-            <td class="p-4 font-medium text-slate-900">${candidate.name}</td>
-            <td class="p-4">${candidate.gender}</td>
-            <td class="p-4 text-slate-500">${candidate.state}</td>
-            <td class="p-4 font-bold text-emerald-800">${candidate.utmeScore}</td>
-            <td class="p-4 text-slate-600">${candidate.course}</td>
-            <td class="p-4 text-center">
-                <button onclick="deleteCandidateRecord('${candidate.jambNo}')" class="text-red-600 hover:text-red-900 font-bold transition-colors px-2 py-1">Delete</button>
-            </td>
-        `;
-        adminTableBody.appendChild(tr);
-    });
-
-    metricTotal.textContent = localDb.length;
-    metricAvgJamb.textContent = Math.round(totalJambScore / localDb.length);
-    metricFemale.textContent = femaleCount;
-    metricOgun.textContent = ogunCount;
-}
-
-window.deleteCandidateRecord = function(jambNo) {
-    if(confirm(`Are you sure you want to completely remove registration profile record ${jambNo}?`)) {
-        localDb = localDb.filter(c => c.jambNo !== jambNo);
-        localStorage.setItem('uniosun_portal_db', JSON.stringify(localDb));
-        updateAdminDashboard();
-    }
-};
-
-// --- DATASET CSV DUMP ENGINE ---
-document.getElementById('admin-download-csv').addEventListener('click', () => {
-    if(localDb.length === 0) {
-        alert("The working database memory contains zero rows to export.");
-        return;
-    }
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "JAMB Reg No,Applicant Name,Gender,Phone,State,LGA,Course Choice,UTME Score\n";
-    
-    localDb.forEach(c => {
-        csvContent += `"${c.jambNo}","${c.name}","${c.gender}","${c.phone}","${c.state}","${c.lga}","${c.course}",${c.utmeScore}\n`;
-    });
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `UNIOSUN_Admissions_Export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+document.getElementById('btn-lock').addEventListener('click', function() {
+    this.classList.add('hidden');
+    document.getElementById('btn-print').classList.remove('hidden');
 });
 
-// --- TOTAL RESET ENGINE ---
+document.getElementById('view-portal-btn').addEventListener('click', () => {
+    portalContainer.classList.remove('hidden');
+    slipContainer.classList.add('hidden');
+    adminContainer.classList.add('hidden');
+});
+
+document.getElementById('view-admin-btn').addEventListener('click', () => {
+    const accessPin = prompt("Enter Administration Access Pin Code:");
+    if (accessPin === "1234") {
+        portalContainer.classList.add('hidden');
+        slipContainer.classList.add('hidden');
+        adminContainer.classList.remove('hidden');
+        renderAdminDashboard();
+    } else if (accessPin !== null) {
+        alert("Invalid Pin.");
+    }
+});
+
+function triggerEmailToast(email) {
+    document.getElementById('email-toast-subj').textContent = `Copy Sent -> ${email}`;
+    const toast = document.getElementById('email-toast');
+    toast.classList.remove('hidden');
+    setTimeout(() => { toast.classList.add('hidden'); }, 9000);
+}
+
+function renderAdminDashboard() {
+    const tbody = document.getElementById('admin-table-body');
+    tbody.innerHTML = '';
+    if (db.length === 0) return;
+    db.forEach((item, index) => {
+        let tr = document.createElement('tr');
+        tr.className = "border-b border-slate-200 hover:bg-slate-50 transition-colors";
+        tr.innerHTML = `
+            <td class="p-3 font-mono font-bold">${item.jambNumber}</td>
+            <td class="p-3 font-semibold">${item.name}</td>
+            <td class="p-3 font-bold text-emerald-800">${item.jambScore}</td>
+            <td class="p-3 font-medium text-slate-600">${item.course}</td>
+            <td class="p-3">
+                <select onchange="updateProcessStatus(${index}, this.value)" class="bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-bold outline-none text-slate-800">
+                    <option value="Pending Review" ${item.status === 'Pending Review' ? 'selected' : ''}>Pending Review</option>
+                    <option value="Screening Scheduled" ${item.status === 'Screening Scheduled' ? 'selected' : ''}>Screening Scheduled</option>
+                    <option value="Admitted" ${item.status === 'Admitted' ? 'selected' : ''}>Admitted</option>
+                    <option value="Not Admitted" ${item.status === 'Not Admitted' ? 'selected' : ''}>Not Admitted</option>
+                </select>
+            </td>
+            <td class="p-3 text-center"><button onclick="deleteRecord(${index})" class="bg-red-100 text-red-700 hover:bg-red-200 font-bold px-2 py-1 rounded text-[10px] uppercase">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.updateProcessStatus = function(index, newStatus) {
+    db[index].status = newStatus;
+    localStorage.setItem('uniosun_db', JSON.stringify(db));
+    alert(`Status altered to: "${newStatus}"`);
+};
+
+window.deleteRecord = function(index) {
+    if (confirm("Discard this applicant profile?")) {
+        db.splice(index, 1);
+        localStorage.setItem('uniosun_db', JSON.stringify(db));
+        renderAdminDashboard();
+    }
+}
+
 document.getElementById('admin-clear-all').addEventListener('click', () => {
-    if(confirm("CRITICAL ACTION: Are you sure you want to clear all applicant records from memory? This cannot be undone.")) {
-        localDb = [];
-        localStorage.removeItem('uniosun_portal_db');
-        updateAdminDashboard();
+    if (confirm("Reset database?")) {
+        db = [];
+        localStorage.removeItem('uniosun_db');
+        renderAdminDashboard();
     }
 });
