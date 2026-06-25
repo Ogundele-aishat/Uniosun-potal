@@ -40,13 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadRegistryData = () => JSON.parse(localStorage.getItem('uniosun_registry')) || {};
     const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
 
-    // Render OLevel Subjects Input Form Block Matrix (Restored Matrix Layout)
+    // Render OLevel Subjects Dropdown Configuration
     if (olevelRowsContainer) {
         olevelRowsContainer.innerHTML = REQUIRED_SUBJECTS.map((subject, index) => `
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
                 <span class="text-[12px] font-semibold text-slate-700">${subject}</span>
                 <div>
-                    <input type="text" placeholder="e.g., WAEC 2025" required id="exam-${index}" class="w-full px-2 py-1.5 border border-slate-300 text-xs font-medium rounded text-slate-800 uppercase outline-none focus:border-emerald-700">
+                    <select id="exam-${index}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                        <option value="">-- Exam Sitting --</option>
+                        <option value="WAEC 2026">WAEC 2026</option>
+                        <option value="NECO 2026">NECO 2026</option>
+                        <option value="WAEC 2025">WAEC 2025</option>
+                        <option value="NECO 2025">NECO 2025</option>
+                        <option value="WAEC 2024">WAEC 2024</option>
+                        <option value="NECO 2024">NECO 2024</option>
+                    </select>
                 </div>
                 <div>
                     <select id="grade-${index}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
@@ -181,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emailAddress = document.getElementById('bio-email').value.trim();
 
         const handler = PaystackPop.setup({
-            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Your custom Paystack key
+            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', // Authorized public key
             email: emailAddress,
             amount: 2500 * 100, // NGN 2,500 in kobo
             currency: 'NGN',
@@ -199,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const executeCoreDataStorageSequence = (payRef) => {
         const olevelResults = REQUIRED_SUBJECTS.map((subject, idx) => ({
             subject,
-            exam: document.getElementById(`exam-${idx}`).value.trim().toUpperCase(),
+            exam: document.getElementById(`exam-${idx}`).value,
             grade: document.getElementById(`grade-${idx}`).value
         }));
 
@@ -237,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSlipPrintLayout(record);
         switchActiveView(slipView);
         
-        // Trigger EmailJS Automation System Dispatches
+        // Trigger Automated Email Delivery
         triggerAutomatedEmailNotification(record);
     };
 
@@ -326,18 +334,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Variables mapped out to match your customized official text template!
+        // Object maps directly into your customized template tokens
         const templateParams = {
             to_email: student.biodata.email,
             applicant_name: student.biodata.name,
             jamb_number: student.jambNo,
             course_choice: student.academic.course,
-            payment_reference: student.receiptRef, // Matches your tracking reference variable name
+            payment_reference: student.receiptRef,
             phone_number: student.biodata.phone
         };
 
-        // ⚠️ Don't forget to swap these strings with your active Dashboard IDs!
-        emailjs.send("YOUR_EMAILJS_SERVICE_ID", "YOUR_EMAILJS_TEMPLATE_ID", templateParams)
+        // Your active EmailJS platform keys integrated directly
+        emailjs.send("service_6hllp68", "template_p26v91n", templateParams)
             .then(() => {
                 const toast = document.getElementById('email-toast');
                 if (toast) {
