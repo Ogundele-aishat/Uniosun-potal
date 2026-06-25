@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUBJECT_OPTIONS = [
         "Agricultural Science", "Biology", "Chemistry", "Commerce", "Christian Religious Studies",
         "Economics", "English Language", "Financial Accounting", "Geography", "Government",
-        "History", "Islamic Religious Studies", "Literature-in-English", "Mathematics", "Physics font-bold"
+        "History", "Islamic Religious Studies", "Literature-in-English", "Mathematics", "Physics"
     ];
 
     // Local Storage Base Loaders
@@ -49,18 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render OLevel Subjects Dynamic Dropdown Selectors Matrix
     if (olevelRowsContainer) {
         let rowsHtml = '';
-        // Generates 5 editable rows where subjects, exam bodies, and grades can all be custom chosen
         for (let i = 0; i < 5; i++) {
             rowsHtml += `
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-emerald-100/50 pb-2 last:border-0">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-slate-100 pb-2 last:border-0">
                     <div>
-                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-semibold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-semibold rounded text-slate-800 bg-white outline-none focus:border-slate-500">
                             <option value="">-- Select Subject ${i + 1} --</option>
                             ${SUBJECT_OPTIONS.map(sub => `<option value="${sub}">${sub}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-slate-500">
                             <option value="">-- Exam Sitting --</option>
                             <option value="WAEC 2026">WAEC 2026</option>
                             <option value="NECO 2026">NECO 2026</option>
@@ -71,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </select>
                     </div>
                     <div>
-                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-emerald-700">
+                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none focus:border-slate-500">
                             <option value="">-- Grade --</option>
                             <option value="A1">A1</option>
                             <option value="B2">B2</option>
@@ -156,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         trackName.textContent = student.biodata.name.toUpperCase();
         trackRef.textContent = `JAMB NO: ${value} | REF: ${student.receiptRef}`;
         
-        // Reset steps graphics configuration
         [dotStep1, dotStep2, dotStep3].forEach(d => { d.className = "w-2.5 h-2.5 rounded-full bg-slate-300 mt-1.5 ml-1 z-10"; });
         descStep2.className = "text-[11px] text-slate-500 block";
         descStep3.className = "text-[11px] font-bold text-slate-500 block";
@@ -268,22 +266,22 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerAutomatedEmailNotification(record);
     };
 
-    // Render Clean Aesthetic Slip Format
+    // Clean Professional Layout (Removed Green Borders)
     const renderSlipPrintLayout = (student) => {
         btnPrint.classList.add('hidden');
         btnLock.classList.remove('hidden');
 
         slipContent.innerHTML = `
-            <div class="grid grid-cols-2 gap-x-6 gap-y-4 border-b pb-4">
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Application Status</span><span class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded mt-0.5 inline-block">${student.status}</span></div>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-slate-200 pb-4">
+                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Application Status</span><span class="text-xs font-bold text-slate-700 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded mt-0.5 inline-block">${student.status}</span></div>
                 <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Transaction Reference</span><span class="font-mono text-xs font-bold text-slate-800">${student.receiptRef}</span></div>
                 <div><span class="text-[10px] uppercase text-slate-400 font-bold block">JAMB Registration Number</span><span class="font-mono text-xs font-bold text-slate-900">${student.jambNo}</span></div>
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Selected Program of Choice</span><span class="text-xs font-bold text-emerald-800">${student.academic.course}</span></div>
+                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Selected Program of Choice</span><span class="text-xs font-bold text-slate-800">${student.academic.course}</span></div>
             </div>
 
             <div>
-                <h4 class="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2">1. Personal Biodata Details</h4>
-                <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs bg-slate-50 p-3 rounded border">
+                <h4 class="text-[11px] font-black uppercase text-slate-900 tracking-wider mb-2">1. Personal Biodata Details</h4>
+                <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs bg-slate-50 p-3 rounded border border-slate-200">
                     <div><span class="text-slate-500">Full Name:</span> <strong class="text-slate-900">${student.biodata.name}</strong></div>
                     <div><span class="text-slate-500">Gender:</span> <strong>${student.biodata.gender}</strong></div>
                     <div><span class="text-slate-500">Phone Number:</span> <strong>${student.biodata.phone}</strong></div>
@@ -296,16 +294,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <h4 class="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2">2. Next of Kin Matrix</h4>
-                    <div class="space-y-1.5 text-xs bg-slate-50 p-3 rounded border min-h-[95px]">
+                    <h4 class="text-[11px] font-black uppercase text-slate-900 tracking-wider mb-2">2. Next of Kin Matrix</h4>
+                    <div class="space-y-1.5 text-xs bg-slate-50 p-3 rounded border border-slate-200 min-h-[95px]">
                         <div><span class="text-slate-500">Kin Name:</span> <strong class="text-slate-900">${student.nextOfKin.name}</strong></div>
                         <div><span class="text-slate-500">Relationship:</span> <strong>${student.nextOfKin.relation}</strong></div>
                         <div><span class="text-slate-500">Emergency Phone:</span> <strong>${student.nextOfKin.phone}</strong></div>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2">3. Institutional Records</h4>
-                    <div class="space-y-1.5 text-xs bg-slate-50 p-3 rounded border min-h-[95px]">
+                    <h4 class="text-[11px] font-black uppercase text-slate-900 tracking-wider mb-2">3. Institutional Records</h4>
+                    <div class="space-y-1.5 text-xs bg-slate-50 p-3 rounded border border-slate-200 min-h-[95px]">
                         <div><span class="text-slate-500">UTME Score:</span> <strong class="text-slate-900 font-mono">${student.academic.score} / 400</strong></div>
                         <div><span class="text-slate-500">Screening Fee:</span> <strong>NGN 2,500.00 (PAID)</strong></div>
                         <div><span class="text-slate-500">Gateway Ref:</span> <span class="text-[10px] font-mono text-slate-600">${student.paymentRef.substring(0,14)}...</span></div>
@@ -314,22 +312,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <div>
-                <h4 class="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2">4. Verified O'Level Credentials Matrix</h4>
-                <div class="border rounded overflow-hidden">
+                <h4 class="text-[11px] font-black uppercase text-slate-900 tracking-wider mb-2">4. Verified O'Level Credentials Matrix</h4>
+                <div class="border border-slate-200 rounded overflow-hidden">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="bg-slate-100 font-bold border-b text-slate-700">
+                            <tr class="bg-slate-100 font-bold border-b border-slate-200 text-slate-700">
                                 <th class="p-2 pl-3">O'level Core Subject</th>
                                 <th class="p-2">Exam Institution Body & Sitting</th>
                                 <th class="p-2 text-right pr-4">Earned Grade</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y">
+                        <tbody class="divide-y divide-slate-200">
                             ${student.olevel.map(row => `
                                 <tr>
                                     <td class="p-2 pl-3 font-semibold text-slate-800">${row.subject}</td>
                                     <td class="p-2 text-slate-600 uppercase font-mono text-[11px]">${row.exam}</td>
-                                    <td class="p-2 text-right pr-4 font-black text-emerald-800">${row.grade}</td>
+                                    <td class="p-2 text-right pr-4 font-black text-slate-900">${row.grade}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -346,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Details verified and locked successfully. You can now safely print your acknowledgment slip.");
     });
 
-    // EmailJS Engine Automations Dispatcher
+    // EmailJS Engine Dispatcher
     const triggerAutomatedEmailNotification = (student) => {
         if (typeof emailjs === 'undefined') {
             console.error("EmailJS engine context unmapped.");
@@ -391,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
                 <td class="p-3 font-mono font-bold text-slate-900">${student.jambNo}</td>
                 <td class="p-3 font-semibold uppercase">${student.biodata.name}</td>
-                <td class="p-3 font-mono font-bold text-emerald-800">${student.academic.score}</td>
+                <td class="p-3 font-mono font-bold text-slate-900">${student.academic.score}</td>
                 <td class="p-3 text-slate-600">${student.academic.course}</td>
                 <td class="p-3">
                     <select class="status-selector border rounded px-2 py-1 font-bold text-xs bg-white ${
