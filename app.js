@@ -89,30 +89,33 @@ document.addEventListener('DOMContentLoaded', () => {
         olevelRowsContainer.innerHTML = rowsHtml;
     }
 
-    // Tab Views Control Core Routing Switchboards
+    // Fixed Routing: Toggles visibility without rewriting button elements dynamically
     const switchActiveView = (targetView) => {
         [portalView, slipView, adminView].forEach(el => el.classList.add('hidden'));
         targetView.classList.remove('hidden');
-        if(targetView === portalView) {
+        
+        if (targetView === portalView) {
             step1.classList.remove('hidden');
             step2.classList.add('hidden');
             trackingCard.classList.add('hidden');
             jambInput.value = '';
+            
+            // Toggle Header Navigation Tab Highlights safely
+            viewPortalBtn.classList.add('bg-amber-400', 'text-slate-950');
+            viewPortalBtn.classList.remove('text-emerald-300', 'hover:text-white');
+            viewAdminBtn.classList.remove('bg-amber-400', 'text-slate-950');
+            viewAdminBtn.classList.add('text-emerald-300', 'hover:text-white');
+        } else if (targetView === adminView) {
+            viewAdminBtn.classList.add('bg-amber-400', 'text-slate-950');
+            viewAdminBtn.classList.remove('text-emerald-300', 'hover:text-white');
+            viewPortalBtn.classList.remove('bg-amber-400', 'text-slate-950');
+            viewPortalBtn.classList.add('text-emerald-300', 'hover:text-white');
+            renderAdminDashboardTable();
         }
     };
 
-    viewPortalBtn.addEventListener('click', () => {
-        viewPortalBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs";
-        viewAdminBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
-        switchActiveView(portalView);
-    });
-
-    viewAdminBtn.addEventListener('click', () => {
-        viewAdminBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs";
-        viewPortalBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
-        switchActiveView(adminView);
-        renderAdminDashboardTable();
-    });
+    viewPortalBtn.addEventListener('click', () => switchActiveView(portalView));
+    viewAdminBtn.addEventListener('click', () => switchActiveView(adminView));
 
     // Verification Logic (Start Application Button)
     verifyBtn.addEventListener('click', () => {
@@ -260,7 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
         saveRegistryData(db);
 
         renderSlipPrintLayout(record);
-        switchActiveView(slipView);
+        
+        // Render slip view safely without disrupting layout mechanics
+        [portalView, adminView].forEach(el => el.classList.add('hidden'));
+        slipView.classList.remove('hidden');
         
         // Trigger Automated Email Delivery
         triggerAutomatedEmailNotification(record);
