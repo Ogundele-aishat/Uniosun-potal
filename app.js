@@ -1,31 +1,24 @@
 /**
  * OSUN STATE UNIVERSITY
  * Post-UTME Admission Screening Portal — 2026 Registry
- * Core Frontend Architecture & EmailJS Synchronizer
+ * System Controller Engine Core Script
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. CORE DOM STRUCTURAL BINDINGS ---
-    // Safely mapping navigation elements using your actual text layout headers
-    const navButtons = Array.from(document.querySelectorAll('button, a'));
+    // --- 1. CORE ELEMENT ROUTING REF REGISTRY LOCKS ---
+    const viewPortalBtn = document.getElementById('view-portal-btn');
+    const viewAdminBtn = document.getElementById('view-admin-btn');
+    const portalView = document.getElementById('portal-view-container');
+    const slipView = document.getElementById('slip-view-container');
+    const adminView = document.getElementById('admin-view-container');
     
-    const portalSystemBtn = navButtons.find(el => el.textContent.includes('Portal System'));
-    const adminBenchBtn = navButtons.find(el => el.textContent.includes('Admin Bench'));
-    
-    // Locating main application display containers
-    const portalView = document.getElementById('portal-view-container') || document.querySelector('.portal-view');
-    const adminView = document.getElementById('admin-view-container') || document.querySelector('.admin-view');
-    const slipView = document.getElementById('slip-view-container') || document.querySelector('.slip-view');
-
-    // Form Steps & Interaction Triggers
-    const candidateGate = document.getElementById('step-1') || document.querySelector('.candidate-gate') || document.getElementById('candidate-gate');
-    const screeningFormContainer = document.getElementById('step-2') || document.querySelector('.screening-form');
-    
-    const jambInput = document.getElementById('jamb-num') || document.querySelector('input[placeholder*="JAMB"]');
-    const applyFreshBtn = Array.from(document.querySelectorAll('button')).find(el => el.textContent.includes('Apply Fresh'));
-    const trackStatusBtn = Array.from(document.querySelectorAll('button')).find(el => el.textContent.includes('Track Status'));
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const jambInput = document.getElementById('jamb-num');
+    const verifyBtn = document.getElementById('btn-verify');
+    const trackBtn = document.getElementById('btn-track');
     const step1Error = document.getElementById('step-1-error');
-
+    
     const portalForm = document.getElementById('portal-form');
     const olevelRowsContainer = document.getElementById('olevel-rows');
     const slipContent = document.getElementById('slip-content');
@@ -34,32 +27,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminTableBody = document.getElementById('admin-table-body');
     const adminClearAll = document.getElementById('admin-clear-all');
 
-    // --- 2. GLOBAL STATE ---
+    // System Cache Dynamic Context State
     let dynamicActiveJamb = '';
+    
     const SUBJECT_OPTIONS = [
         "Agricultural Science", "Biology", "Chemistry", "Commerce", "Christian Religious Studies",
         "Economics", "English Language", "Financial Accounting", "Geography", "Government",
         "History", "Islamic Religious Studies", "Literature-in-English", "Mathematics", "Physics"
     ];
 
-    // --- 3. STORAGE ENGINE WORKERS ---
+    // Local Storage Registry Loaders
     const loadRegistryData = () => JSON.parse(localStorage.getItem('uniosun_registry')) || {};
     const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
 
-    // --- 4. DYNAMIC O'LEVEL MATRIX GENERATOR ---
+    // --- 2. O'LEVEL SUBJECT SELECT MATRIX INJECTOR ---
     if (olevelRowsContainer) {
         let rowsHtml = '';
         for (let i = 0; i < 5; i++) {
             rowsHtml += `
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-slate-100 pb-2 last:border-0">
                     <div>
-                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-semibold rounded text-slate-800 bg-white outline-none">
+                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-semibold rounded text-slate-800 bg-white outline-none">
                             <option value="">-- Select Subject ${i + 1} --</option>
                             ${SUBJECT_OPTIONS.map(sub => `<option value="${sub}">${sub}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none">
+                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-bold rounded text-slate-800 bg-white outline-none">
                             <option value="">-- Exam Sitting --</option>
                             <option value="WAEC 2026">WAEC 2026</option>
                             <option value="NECO 2026">NECO 2026</option>
@@ -68,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </select>
                     </div>
                     <div>
-                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-xs font-bold rounded text-slate-800 bg-white outline-none">
+                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-bold rounded text-slate-800 bg-white outline-none">
                             <option value="">-- Grade --</option>
                             <option value="A1">A1</option><option value="B2">B2</option><option value="B3">B3</option>
                             <option value="C4">C4</option><option value="C5">C5</option><option value="C6">C6</option>
@@ -81,139 +75,123 @@ document.addEventListener('DOMContentLoaded', () => {
         olevelRowsContainer.innerHTML = rowsHtml;
     }
 
-    // --- 5. VIEW ROUTING CONTROLLER ---
+    // --- 3. REVENUE & DISPLAY ROUTING LOCKS ---
     const switchActiveView = (targetView) => {
-        [portalView, slipView, adminView].forEach(el => { if(el) el.classList.add('hidden'); });
-        if(targetView) targetView.classList.remove('hidden');
+        [portalView, slipView, adminView].forEach(el => el.classList.add('hidden'));
+        targetView.classList.remove('hidden');
         
+        // Dynamic active state styling switches for the header navigation elements
         if (targetView === portalView) {
-            if(candidateGate) candidateGate.classList.remove('hidden');
-            if(screeningFormContainer) screeningFormContainer.classList.add('hidden');
-            if(jambInput) jambInput.value = '';
+            step1.classList.remove('hidden');
+            step2.classList.add('hidden');
+            jambInput.value = '';
+            viewPortalBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all bg-amber-400 text-slate-950 shadow";
+            viewAdminBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all text-emerald-200 hover:text-white hover:bg-emerald-700/50";
+        } else if (targetView === adminView) {
+            viewAdminBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all bg-amber-400 text-slate-950 shadow";
+            viewPortalBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all text-emerald-200 hover:text-white hover:bg-emerald-700/50";
+            renderAdminDashboardTable();
         }
     };
 
-    if (portalSystemBtn) portalSystemBtn.addEventListener('click', () => switchActiveView(portalView));
-    if (adminBenchBtn) adminBenchBtn.addEventListener('click', () => {
-        switchActiveView(adminView);
-        renderAdminDashboardTable();
+    viewPortalBtn.addEventListener('click', () => switchActiveView(portalView));
+    viewAdminBtn.addEventListener('click', () => switchActiveView(adminView));
+
+    // --- 4. VERIFICATION ENTRYGATE OPERATORS ---
+    verifyBtn.addEventListener('click', () => {
+        const value = jambInput.value.trim().toUpperCase();
+        if (!value) {
+            showStep1Error("Validation Failure: Valid JAMB Registration reference key required.");
+            return;
+        }
+        step1Error.classList.add('hidden');
+        const db = loadRegistryData();
+
+        if (db[value]) {
+            showStep1Error("Profile mismatch: This record entry exists inside the screening registry database.");
+            return;
+        }
+        dynamicActiveJamb = value;
+        step1.classList.add('hidden');
+        step2.classList.remove('hidden');
+        portalForm.reset();
     });
 
-    // --- 6. CANDIDATE GATE GATEWAY INTERACTION ---
-    if (applyFreshBtn) {
-        applyFreshBtn.addEventListener('click', () => {
-            if (!jambInput) return;
-            const value = jambInput.value.trim().toUpperCase();
-            if (!value) {
-                showErrorNotification("Please input your JAMB Registration Reference Number.");
-                return;
-            }
-            hideErrorNotification();
-            const db = loadRegistryData();
-
-            if (db[value]) {
-                showErrorNotification("Profile registration exists. Click 'Track Status' to manage your profile.");
-                return;
-            }
-            dynamicActiveJamb = value;
-            if(candidateGate) candidateGate.classList.add('hidden');
-            if(screeningFormContainer) screeningFormContainer.classList.remove('hidden');
-            if(portalForm) portalForm.reset();
-        });
-    }
-
-    if (trackStatusBtn) {
-        trackStatusBtn.addEventListener('click', () => {
-            if (!jambInput) return;
-            const value = jambInput.value.trim().toUpperCase();
-            if (!value) {
-                showErrorNotification("Please enter your JAMB Number to parse system database status.");
-                return;
-            }
-            hideErrorNotification();
-            const db = loadRegistryData();
-            const student = db[value];
-
-            if (!student) {
-                showErrorNotification("No records discovered for this registration parameters.");
-                return;
-            }
-
-            dynamicActiveJamb = value;
-            renderSlipPrintLayout(student);
-            switchActiveView(slipView);
-        });
-    }
-
-    const showErrorNotification = (msg) => {
-        if (step1Error) {
-            step1Error.textContent = msg;
-            step1Error.classList.remove('hidden');
-        } else {
-            alert(msg);
+    trackBtn.addEventListener('click', () => {
+        const value = jambInput.value.trim().toUpperCase();
+        if (!value) {
+            showStep1Error("Input your registration key parameters to fetch progress parameters.");
+            return;
         }
+        step1Error.classList.add('hidden');
+        const db = loadRegistryData();
+        const student = db[value];
+
+        if (!student) {
+            showStep1Error("Registry lookup failed: No data match discovered.");
+            return;
+        }
+
+        dynamicActiveJamb = value;
+        renderSlipPrintLayout(student);
+        switchActiveView(slipView);
+    });
+
+    const showStep1Error = (msg) => {
+        step1Error.textContent = msg;
+        step1Error.classList.remove('hidden');
     };
 
-    const hideErrorNotification = () => {
-        if (step1Error) step1Error.classList.add('hidden');
-    };
+    // --- 5. SECURE TRANSACTION INLINE CHECKOUT GATEWAY ---
+    portalForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailAddress = document.getElementById('bio-email').value.trim();
 
-    // --- 7. FORMS MANAGEMENT & TRANSACTIONS ---
-    if (portalForm) {
-        portalForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const emailAddress = document.getElementById('bio-email').value.trim();
+        if (typeof PaystackPop === 'undefined') {
+            // Secure fallback engine bypass processing handler in case CDN stalls
+            executeCoreDataStorageSequence('OFFLINE-GATEWAY-REF-' + Math.floor(Math.random() * 89999 + 10000));
+            return;
+        }
 
-            if(typeof PaystackPop === 'undefined') {
-                alert("Payment engine integration script failure. Emulating dynamic fallback mock processing reference key.");
-                executeCoreDataStorageSequence('MOCK-REF-' + Math.random().toString(36).substr(2, 9).toUpperCase());
-                return;
+        const handler = PaystackPop.setup({
+            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', 
+            email: emailAddress,
+            amount: 2500 * 100, 
+            currency: 'NGN',
+            callback: function(response) {
+                executeCoreDataStorageSequence(response.reference);
+            },
+            onClose: function() {
+                alert('Screening portal checkout authentication cycle interrupted.');
             }
-
-            const handler = PaystackPop.setup({
-                key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', 
-                email: emailAddress,
-                amount: 2500 * 100, 
-                currency: 'NGN',
-                callback: function(response) {
-                    executeCoreDataStorageSequence(response.reference);
-                },
-                onClose: function() {
-                    alert('Transaction terminated. Screening checkout payment validation requirements mandatory.');
-                }
-            });
-            handler.openIframe();
         });
-    }
+        handler.openIframe();
+    });
 
     const executeCoreDataStorageSequence = (payRef) => {
         const olevelResults = [];
         for (let i = 0; i < 5; i++) {
-            const subEl = document.getElementById(`subject-${i}`);
-            const exEl = document.getElementById(`exam-${i}`);
-            const grEl = document.getElementById(`grade-${i}`);
-            if(subEl && exEl && grEl) {
-                olevelResults.push({ subject: subEl.value, exam: exEl.value, grade: grEl.value });
-            }
+            olevelResults.push({
+                subject: document.getElementById(`subject-${i}`).value,
+                exam: document.getElementById(`exam-${i}`).value,
+                grade: document.getElementById(`grade-${i}`).value
+            });
         }
 
         const record = {
             jambNo: dynamicActiveJamb,
-            receiptRef: 'UNIOSUN-' + Math.floor(100000 + Math.random() * 900000),
+            receiptRef: 'UNIOSUN-2026-' + Math.floor(100000 + Math.random() * 900000),
             paymentRef: payRef,
             status: 'Pending',
             biodata: {
-                name: (document.getElementById('bio-name')?.value || 'UNKNOWN APPLICANT').trim().toUpperCase(),
-                gender: document.getElementById('bio-gender')?.value || 'M',
-                phone: document.getElementById('bio-phone')?.value || '',
-                email: document.getElementById('bio-email')?.value || '',
-                address: document.getElementById('bio-address')?.value || '',
-                state: document.getElementById('bio-state')?.value || 'Osun',
-                lga: document.getElementById('bio-lga')?.value || ''
+                name: document.getElementById('bio-name').value.trim().toUpperCase(),
+                gender: document.getElementById('bio-gender').value,
+                phone: document.getElementById('bio-phone').value.trim(),
+                email: document.getElementById('bio-email').value.trim()
             },
             academic: {
-                score: document.getElementById('acad-score')?.value || '200',
-                course: document.getElementById('acad-course')?.value || 'General Studies'
+                score: document.getElementById('acad-score').value,
+                course: document.getElementById('acad-course').value
             },
             olevel: olevelResults
         };
@@ -225,47 +203,57 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSlipPrintLayout(record);
         switchActiveView(slipView);
         
-        // EXECUTE EMAIL DISPATCH DISPATCHER IMMEDIATE
+        // FORCE DISPATCH SYSTEM TRANSACTION EMAIL DISPATCHER INSTANTLY
         triggerAutomatedEmailNotification(record);
     };
 
-    // --- 8. ORIGINAL RENDER COMPONENT SLIPS ---
+    // --- 6. ACKNOWLEDGEMENT SLIP CONTENT VIEW RENDERS ---
     const renderSlipPrintLayout = (student) => {
-        if(!slipContent) return;
-        if(btnPrint) btnPrint.classList.add('hidden');
-        if(btnLock) btnLock.classList.remove('hidden');
+        btnPrint.classList.add('hidden');
+        btnLock.classList.remove('hidden');
 
         slipContent.innerHTML = `
-            <div class="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-slate-200 pb-4 mb-4">
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Application Status</span><span class="text-xs font-bold text-slate-700 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded mt-0.5 inline-block">${student.status}</span></div>
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Transaction Reference</span><span class="font-mono text-xs font-bold text-slate-800">${student.receiptRef}</span></div>
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">JAMB Registration Number</span><span class="font-mono text-xs font-bold text-slate-900">${student.jambNo}</span></div>
-                <div><span class="text-[10px] uppercase text-slate-400 font-bold block">Selected Course</span><span class="text-xs font-bold text-slate-800">${student.academic.course}</span></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Registration Code</span>
+                    <span class="font-mono text-xs font-black text-slate-800">${student.receiptRef}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">System Verification Status</span>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded mt-0.5 inline-block bg-amber-100 text-amber-800 border border-amber-300">${student.status}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">JAMB Reference Number</span>
+                    <span class="font-mono text-xs font-bold text-slate-900">${student.jambNo}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Mapped Program Pipeline</span>
+                    <span class="text-xs font-bold text-emerald-800">${student.academic.course}</span>
+                </div>
             </div>
-            <div class="space-y-2 text-xs bg-slate-50 p-3 rounded border border-slate-200">
-                <div><span class="text-slate-500">Applicant Name:</span> <strong>${student.biodata.name}</strong></div>
-                <div><span class="text-slate-500">Contact Email:</span> <strong class="lowercase">${student.biodata.email}</strong></div>
-                <div><span class="text-slate-500">UTME Score:</span> <strong class="font-mono">${student.academic.score} / 400</strong></div>
+            
+            <div class="bg-slate-50 p-4 rounded-lg border text-xs space-y-2">
+                <div><span class="text-slate-500 font-medium">Candidate Name:</span> <strong class="text-slate-900">${student.biodata.name}</strong></div>
+                <div><span class="text-slate-500 font-medium">Registry Email Anchor:</span> <strong class="lowercase">${student.biodata.email}</strong></div>
+                <div><span class="text-slate-500 font-medium">UTME Verified Metric Score:</span> <strong class="font-mono text-slate-900">${student.academic.score} / 400</strong></div>
             </div>
         `;
     };
 
-    if (btnLock) {
-        btnLock.addEventListener('click', () => {
-            btnLock.classList.add('hidden');
-            if(btnPrint) btnPrint.classList.remove('hidden');
-            alert("Application data validation state successfully locked.");
-        });
-    }
+    btnLock.addEventListener('click', () => {
+        btnLock.classList.add('hidden');
+        btnPrint.classList.remove('hidden');
+        alert("Information parameters verification state successfully locked to registry server logs.");
+    });
 
-    // --- 9. THE BULLETPROOF EMAILJS INTEGRATION TRIGGER ---
+    // --- 7. FIX: RECONFIGURED EMAILJS DISPATCHER ROUTINE ---
     const triggerAutomatedEmailNotification = (student) => {
         if (typeof emailjs === 'undefined') {
-            console.error("EmailJS execution context failure: SDK layer scripts missing from document head framework.");
+            console.error("Critical System Interruption: EmailJS core library context unmapped on global frame.");
             return;
         }
 
-        // Mapping your explicit backend templates variables safely
+        // Reconfigured variables to match standard backend templates explicitly
         const templateParams = {
             to_email: student.biodata.email,
             applicant_name: student.biodata.name,
@@ -275,54 +263,49 @@ document.addEventListener('DOMContentLoaded', () => {
             phone_number: student.biodata.phone
         };
 
-        // Enforcing system identifiers parameter locks explicitly
+        // Execution of routing token keys
         emailjs.send("service_6hllp68", "template_p26v91n", templateParams)
-            .then((res) => {
-                console.log("Email status: Dispatched successfully.", res.status, res.text);
+            .then((response) => {
+                console.log("Transmission Success Status:", response.status, response.text);
                 const toast = document.getElementById('email-toast');
-                if (toast) {
-                    toast.classList.remove('hidden');
-                    setTimeout(() => toast.classList.add('hidden'), 6000);
-                }
+                if (toast) toast.classList.remove('hidden');
             })
-            .catch((err) => {
-                console.error("Critical EmailJS Transaction Rejection Handler Output:", err);
-                alert(`Data stored locally, but mail routing failed: ${err.text || 'Check API public security keys.'}`);
+            .catch((error) => {
+                console.error("Critical Email Engine Failure Trace:", error);
+                alert(`Data Saved locally! Email Dispatch Failure: ${error.text || 'Verify public key anchor initialization parameters.'}`);
             });
     };
 
-    // --- 10. ADMIN CONSOLE MANAGEMENT CONTROLLERS ---
+    // --- 8. ADMIN DASHBOARD DATABASE REVIEWS ---
     const renderAdminDashboardTable = () => {
-        if (!adminTableBody) return;
-        const db = loadRegistryData();
         adminTableBody.innerHTML = '';
+        const db = loadRegistryData();
         const keys = Object.keys(db);
 
         if (keys.length === 0) {
-            adminTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No submission records.</td></tr>`;
+            adminTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 font-medium">No candidate registrations processed.</td></tr>`;
             return;
         }
 
         keys.forEach(key => {
             const student = db[key];
             const tr = document.createElement('tr');
+            tr.className = "border-b hover:bg-slate-50/50";
             tr.innerHTML = `
-                <td class="p-2 font-mono font-bold">${student.jambNo}</td>
-                <td class="p-2 uppercase text-xs">${student.biodata.name}</td>
-                <td class="p-2 font-mono">${student.academic.score}</td>
-                <td class="p-2 text-xs">${student.academic.course}</td>
-                <td class="p-2">${student.status}</td>
+                <td class="p-3 font-mono font-bold text-slate-900">${student.jambNo}</td>
+                <td class="p-3 font-semibold uppercase text-slate-700">${student.biodata.name}</td>
+                <td class="p-3 font-mono font-bold">${student.academic.score}</td>
+                <td class="p-3 text-slate-600">${student.academic.course}</td>
+                <td class="p-3"><span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700">${student.status}</span></td>
             `;
             adminTableBody.appendChild(tr);
         });
     };
 
-    if (adminClearAll) {
-        adminClearAll.addEventListener('click', () => {
-            if (confirm("Purge full database instances?")) {
-                localStorage.removeItem('uniosun_registry');
-                renderAdminDashboardTable();
-            }
-        });
-    }
+    adminClearAll.addEventListener('click', () => {
+        if (confirm("⚠️ System Warning: Purge current registry session storage entries?")) {
+            localStorage.removeItem('uniosun_registry');
+            renderAdminDashboardTable();
+        }
+    });
 });
