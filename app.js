@@ -7,6 +7,9 @@ const EMAILJS_PUBLIC_KEY = "e4lNbK-RTBf77j2Gm";
 const EMAILJS_SERVICE_ID = "service_6hllp68";
 const EMAILJS_TEMPLATE_ID = "template_p26v91n";
 
+// --- ADMIN GATEKEEPER CONFIGURATION ---
+const ADMIN_ACCESS_CODE = "UNIOSUN_ADMIN_2026"; // <-- Your Master Password
+
 // Graceful fallback execution init sequence
 if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
     emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -90,6 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const navigateToView = (viewTarget) => {
+        // CHALLENGE INPUT SECURITY LAYER BLOCK
+        if (viewTarget === adminView) {
+            const secretPromptInput = prompt("🔐 Enter Master Administrative Access Code:");
+            if (secretPromptInput !== ADMIN_ACCESS_CODE) {
+                alert("❌ Access Denied: Unauthorized configuration parameter parameters.");
+                return; // Cease execution loop early
+            }
+        }
+
         [portalView, slipView, adminView].forEach(view => view.classList.add('hidden'));
         viewTarget.classList.remove('hidden');
 
