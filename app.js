@@ -1,241 +1,350 @@
 /**
- * OSUN STATE UNIVERSITY
- * Post-UTME Admission Screening Portal — 2026 Registry
- * System Controller Engine Core Script
+ * OSUN STATE UNIVERSITY PORTAL APPLICATION MANAGEMENT SCRIPT
  */
 
+// --- CRITICAL EMAILJS CONFIGURATION WORKBENCH ---
+// Paste your EmailJS public account key token string here to stop verification failures.
+const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY_HERE"; 
+const EMAILJS_SERVICE_ID = "service_6hllp68";
+const EMAILJS_TEMPLATE_ID = "template_p26v91n";
+
+// Initialize EmailJS Engine instantly on boot cycle execution
+if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. CORE ELEMENT ROUTING REF REGISTRY LOCKS ---
+    // Top-level Application State
+    let activeJambNumber = '';
+
+    // Core Node Reference Map
     const viewPortalBtn = document.getElementById('view-portal-btn');
     const viewAdminBtn = document.getElementById('view-admin-btn');
     const portalView = document.getElementById('portal-view-container');
     const slipView = document.getElementById('slip-view-container');
     const adminView = document.getElementById('admin-view-container');
-    
+
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
     const jambInput = document.getElementById('jamb-num');
     const verifyBtn = document.getElementById('btn-verify');
     const trackBtn = document.getElementById('btn-track');
     const step1Error = document.getElementById('step-1-error');
-    
+
+    const trackingCard = document.getElementById('tracking-card');
+    const trackName = document.getElementById('track-name');
+    const trackRef = document.getElementById('track-ref');
+    const btnReprint = document.getElementById('btn-reprint');
+
+    const dotStep2 = document.getElementById('dot-step2');
+    const descStep2 = document.getElementById('desc-step2');
+    const dotStep3 = document.getElementById('dot-step3');
+    const descStep3 = document.getElementById('desc-step3');
+
     const portalForm = document.getElementById('portal-form');
-    const olevelRowsContainer = document.getElementById('olevel-rows');
+    const olevelRows = document.getElementById('olevel-rows');
     const slipContent = document.getElementById('slip-content');
     const btnLock = document.getElementById('btn-lock');
     const btnPrint = document.getElementById('btn-print');
+
     const adminTableBody = document.getElementById('admin-table-body');
     const adminClearAll = document.getElementById('admin-clear-all');
 
-    // System Cache Dynamic Context State
-    let dynamicActiveJamb = '';
-    
-    const SUBJECT_OPTIONS = [
-        "Agricultural Science", "Biology", "Chemistry", "Commerce", "Christian Religious Studies",
-        "Economics", "English Language", "Financial Accounting", "Geography", "Government",
-        "History", "Islamic Religious Studies", "Literature-in-English", "Mathematics", "Physics"
+    // Mapped standard baseline subjects
+    const SUBJECTS = [
+        "English Language", "Mathematics", "Physics", "Chemistry", "Biology",
+        "Agricultural Science", "Government", "Economics", "Geography", 
+        "Commerce", "Literature in English", "Christian Religious Studies", "Islamic Studies"
     ];
 
-    // Local Storage Registry Loaders
-    const loadRegistryData = () => JSON.parse(localStorage.getItem('uniosun_registry')) || {};
-    const saveRegistryData = (data) => localStorage.setItem('uniosun_registry', JSON.stringify(data));
+    // Local Storage Wrapper Logic APIs
+    const getStorageData = () => JSON.parse(localStorage.getItem('uniosun_db')) || {};
+    const setStorageData = (data) => localStorage.setItem('uniosun_db', JSON.stringify(data));
 
-    // --- 2. O'LEVEL SUBJECT SELECT MATRIX INJECTOR ---
-    if (olevelRowsContainer) {
-        let rowsHtml = '';
+    // Dynamic configuration generator for O'Level Matrix inputs matching original dimensions
+    if (olevelRows) {
+        let contentHtml = '';
         for (let i = 0; i < 5; i++) {
-            rowsHtml += `
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center border-b border-slate-100 pb-2 last:border-0">
+            contentHtml += `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center pb-2 border-b border-slate-200/60 last:border-0 last:pb-0">
                     <div>
-                        <select id="subject-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-semibold rounded text-slate-800 bg-white outline-none">
-                            <option value="">-- Select Subject ${i + 1} --</option>
-                            ${SUBJECT_OPTIONS.map(sub => `<option value="${sub}">${sub}</option>`).join('')}
+                        <select id="subj-name-${i}" required class="w-full p-1.5 border border-slate-300 rounded text-[12px] bg-white text-slate-800 font-medium outline-none">
+                            <option value="">-- Select Subject --</option>
+                            ${SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <select id="exam-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-bold rounded text-slate-800 bg-white outline-none">
-                            <option value="">-- Exam Sitting --</option>
-                            <option value="WAEC 2026">WAEC 2026</option>
-                            <option value="NECO 2026">NECO 2026</option>
-                            <option value="WAEC 2025">WAEC 2025</option>
-                            <option value="NECO 2025">NECO 2025</option>
+                        <select id="subj-sit-${i}" required class="w-full p-1.5 border border-slate-300 rounded text-[12px] bg-white text-slate-800 font-medium outline-none">
+                            <option value="WAEC May/June 2026">WAEC May/June 2026</option>
+                            <option value="NECO June/July 2026">NECO June/July 2026</option>
+                            <option value="WAEC May/June 2025">WAEC May/June 2025</option>
+                            <option value="NECO June/July 2025">NECO June/July 2025</option>
                         </select>
                     </div>
                     <div>
-                        <select id="grade-${i}" required class="w-full px-2 py-1.5 border border-slate-300 text-[11px] font-bold rounded text-slate-800 bg-white outline-none">
+                        <select id="subj-grade-${i}" required class="w-full p-1.5 border border-slate-300 rounded text-[12px] bg-white text-slate-800 font-bold outline-none">
                             <option value="">-- Grade --</option>
-                            <option value="A1">A1</option><option value="B2">B2</option><option value="B3">B3</option>
-                            <option value="C4">C4</option><option value="C5">C5</option><option value="C6">C6</option>
-                            <option value="D7">D7</option><option value="E8">E8</option><option value="F9">F9</option>
+                            ${["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"].map(g => `<option value="${g}">${g}</option>`).join('')}
                         </select>
                     </div>
                 </div>
             `;
         }
-        olevelRowsContainer.innerHTML = rowsHtml;
+        olevelRows.innerHTML = contentHtml;
     }
 
-    // --- 3. REVENUE & DISPLAY ROUTING LOCKS ---
-    const switchActiveView = (targetView) => {
-        [portalView, slipView, adminView].forEach(el => el.classList.add('hidden'));
-        targetView.classList.remove('hidden');
-        
-        // Dynamic active state styling switches for the header navigation elements
-        if (targetView === portalView) {
+    // Header navigation display panel routing configuration mapping
+    const navigateToView = (viewTarget) => {
+        [portalView, slipView, adminView].forEach(view => view.classList.add('hidden'));
+        viewTarget.classList.remove('hidden');
+
+        if (viewTarget === portalView) {
             step1.classList.remove('hidden');
             step2.classList.add('hidden');
+            trackingCard.classList.add('hidden');
             jambInput.value = '';
-            viewPortalBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all bg-amber-400 text-slate-950 shadow";
-            viewAdminBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all text-emerald-200 hover:text-white hover:bg-emerald-700/50";
-        } else if (targetView === adminView) {
-            viewAdminBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all bg-amber-400 text-slate-950 shadow";
-            viewPortalBtn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all text-emerald-200 hover:text-white hover:bg-emerald-700/50";
-            renderAdminDashboardTable();
+            viewPortalBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs";
+            viewAdminBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
+        } else if (viewTarget === adminView) {
+            viewAdminBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all bg-amber-400 text-slate-950 shadow-xs";
+            viewPortalBtn.className = "px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider transition-all text-emerald-300 hover:text-white";
+            buildAdminViewDataLogs();
         }
     };
 
-    viewPortalBtn.addEventListener('click', () => switchActiveView(portalView));
-    viewAdminBtn.addEventListener('click', () => switchActiveView(adminView));
+    viewPortalBtn.addEventListener('click', () => navigateToView(portalView));
+    viewAdminBtn.addEventListener('click', () => navigateToView(adminView));
 
-    // --- 4. VERIFICATION ENTRYGATE OPERATORS ---
+    // Entry point lookup gateway tracking controller logic processing loops
     verifyBtn.addEventListener('click', () => {
-        const value = jambInput.value.trim().toUpperCase();
-        if (!value) {
-            showStep1Error("Validation Failure: Valid JAMB Registration reference key required.");
+        const jambNo = jambInput.value.trim().toUpperCase();
+        if (!jambNo) {
+            showStep1ErrorMsg("Please enter your JAMB Registration Number.");
             return;
         }
         step1Error.classList.add('hidden');
-        const db = loadRegistryData();
+        const db = getStorageData();
 
-        if (db[value]) {
-            showStep1Error("Profile mismatch: This record entry exists inside the screening registry database.");
+        if (db[jambNo]) {
+            showStep1ErrorMsg("This application already exists. Click 'Track Admission Process' to access your profile.");
             return;
         }
-        dynamicActiveJamb = value;
+
+        activeJambNumber = jambNo;
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
         portalForm.reset();
     });
 
     trackBtn.addEventListener('click', () => {
-        const value = jambInput.value.trim().toUpperCase();
-        if (!value) {
-            showStep1Error("Input your registration key parameters to fetch progress parameters.");
+        const jambNo = jambInput.value.trim().toUpperCase();
+        if (!jambNo) {
+            showStep1ErrorMsg("Please enter your JAMB Registration Number to track application status.");
             return;
         }
         step1Error.classList.add('hidden');
-        const db = loadRegistryData();
-        const student = db[value];
+        const db = getStorageData();
+        const record = db[jambNo];
 
-        if (!student) {
-            showStep1Error("Registry lookup failed: No data match discovered.");
+        if (!record) {
+            showStep1ErrorMsg("No record found for this entry parameters inside database.");
             return;
         }
 
-        dynamicActiveJamb = value;
-        renderSlipPrintLayout(student);
-        switchActiveView(slipView);
+        activeJambNumber = jambNo;
+        trackName.textContent = record.biodata.name;
+        trackRef.textContent = `Ref: ${record.applicationId}`;
+
+        // Dynamic setup for status workflow metrics
+        if (record.status === 'Under Review') {
+            dotStep2.className = "w-2.5 h-2.5 rounded-full bg-amber-500 mt-1.5 ml-1 z-10";
+            descStep2.className = "text-[11px] text-amber-600 block font-medium";
+            descStep2.textContent = "Credentials verification actively checked by registry desk.";
+        } else if (record.status === 'Admitted') {
+            dotStep2.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+            descStep2.className = "text-[11px] text-emerald-700 block";
+            descStep2.textContent = "Credentials verified successfully.";
+            dotStep3.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+            descStep3.className = "text-[11px] font-bold text-emerald-700 block";
+            descStep3.textContent = "Congratulations! Admission granted to chosen course pipeline.";
+        } else if (record.status === 'Rejected') {
+            dotStep2.className = "w-2.5 h-2.5 rounded-full bg-emerald-600 mt-1.5 ml-1 z-10";
+            dotStep3.className = "w-2.5 h-2.5 rounded-full bg-red-600 mt-1.5 ml-1 z-10";
+            descStep3.className = "text-[11px] font-bold text-red-600 block";
+            descStep3.textContent = "Admission status criteria unfulfilled.";
+        } else {
+            dotStep2.className = "w-2.5 h-2.5 rounded-full bg-slate-300 mt-1.5 ml-1 z-10";
+            descStep2.className = "text-[11px] text-slate-500 block";
+            descStep2.textContent = "Credentials queued for review.";
+            dotStep3.className = "w-2.5 h-2.5 rounded-full bg-slate-300 mt-1.5 ml-1 z-10";
+            descStep3.className = "text-[11px] font-bold text-slate-500 block";
+            descStep3.textContent = "Awaiting board decision.";
+        }
+
+        trackingCard.classList.remove('hidden');
     });
 
-    const showStep1Error = (msg) => {
+    btnReprint.addEventListener('click', () => {
+        const db = getStorageData();
+        const record = db[activeJambNumber];
+        if (record) {
+            populateSlipMarkupView(record);
+            navigateToView(slipView);
+        }
+    });
+
+    const showStep1ErrorMsg = (msg) => {
         step1Error.textContent = msg;
         step1Error.classList.remove('hidden');
     };
 
-    // --- 5. SECURE TRANSACTION INLINE CHECKOUT GATEWAY ---
+    // Paystack Inline checkout intercept point logic parameters
     portalForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const emailAddress = document.getElementById('bio-email').value.trim();
 
         if (typeof PaystackPop === 'undefined') {
-            // Secure fallback engine bypass processing handler in case CDN stalls
-            executeCoreDataStorageSequence('OFFLINE-GATEWAY-REF-' + Math.floor(Math.random() * 89999 + 10000));
+            executeApplicationPersistence('OFFLINE-GATEWAY-FALLBACK-' + Date.now());
             return;
         }
 
-        const handler = PaystackPop.setup({
-            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed', 
+        // Configuration setup mapping the official v2 Pop module parameters structure
+        const checkoutPopup = new PaystackPop();
+        checkoutPopup.newTransaction({
+            key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed',
             email: emailAddress,
-            amount: 2500 * 100, 
+            amount: 2500 * 100,
             currency: 'NGN',
-            callback: function(response) {
-                executeCoreDataStorageSequence(response.reference);
+            onSuccess: (transaction) => {
+                executeApplicationPersistence(transaction.reference);
             },
-            onClose: function() {
-                alert('Screening portal checkout authentication cycle interrupted.');
+            onCancel: () => {
+                alert("Payment interaction halted or abandoned by user.");
             }
         });
-        handler.openIframe();
     });
 
-    const executeCoreDataStorageSequence = (payRef) => {
-        const olevelResults = [];
+    const executeApplicationPersistence = (referenceCode) => {
+        const olevelItems = [];
         for (let i = 0; i < 5; i++) {
-            olevelResults.push({
-                subject: document.getElementById(`subject-${i}`).value,
-                exam: document.getElementById(`exam-${i}`).value,
-                grade: document.getElementById(`grade-${i}`).value
+            olevelItems.push({
+                subject: document.getElementById(`subj-name-${i}`).value,
+                sitting: document.getElementById(`subj-sit-${i}`).value,
+                grade: document.getElementById(`subj-grade-${i}`).value
             });
         }
 
-        const record = {
-            jambNo: dynamicActiveJamb,
-            receiptRef: 'UNIOSUN-2026-' + Math.floor(100000 + Math.random() * 900000),
-            paymentRef: payRef,
+        const registrationPayload = {
+            jambNo: activeJambNumber,
+            applicationId: 'UNIOSUN-' + Math.floor(100000 + Math.random() * 900000),
+            paymentRef: referenceCode,
             status: 'Pending',
+            timestamp: new Date().toLocaleDateString(),
             biodata: {
                 name: document.getElementById('bio-name').value.trim().toUpperCase(),
                 gender: document.getElementById('bio-gender').value,
                 phone: document.getElementById('bio-phone').value.trim(),
-                email: document.getElementById('bio-email').value.trim()
+                email: document.getElementById('bio-email').value.trim(),
+                address: document.getElementById('bio-address').value.trim(),
+                state: document.getElementById('bio-state').value.trim(),
+                lga: document.getElementById('bio-lga').value.trim()
+            },
+            nextOfKin: {
+                name: document.getElementById('nok-name').value.trim().toUpperCase(),
+                relation: document.getElementById('nok-relation').value,
+                phone: document.getElementById('nok-phone').value.trim(),
+                address: document.getElementById('nok-address').value.trim()
             },
             academic: {
                 score: document.getElementById('acad-score').value,
                 course: document.getElementById('acad-course').value
             },
-            olevel: olevelResults
+            olevel: olevelItems
         };
 
-        const db = loadRegistryData();
-        db[dynamicActiveJamb] = record;
-        saveRegistryData(db);
+        const db = getStorageData();
+        db[activeJambNumber] = registrationPayload;
+        setStorageData(db);
 
-        renderSlipPrintLayout(record);
-        switchActiveView(slipView);
-        
-        // FORCE DISPATCH SYSTEM TRANSACTION EMAIL DISPATCHER INSTANTLY
-        triggerAutomatedEmailNotification(record);
+        populateSlipMarkupView(registrationPayload);
+        navigateToView(slipView);
+
+        dispatchDynamicNotificationEmail(registrationPayload);
     };
 
-    // --- 6. ACKNOWLEDGEMENT SLIP CONTENT VIEW RENDERS ---
-    const renderSlipPrintLayout = (student) => {
-        btnPrint.classList.add('hidden');
+    // Reconstructs clean, complete application data for printing
+    const populateSlipMarkupView = (data) => {
         btnLock.classList.remove('hidden');
+        btnPrint.classList.add('hidden');
 
         slipContent.innerHTML = `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-slate-50 p-5 rounded-lg border border-slate-200">
                 <div>
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Registration Code</span>
-                    <span class="font-mono text-xs font-black text-slate-800">${student.receiptRef}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Application Reference ID</span>
+                    <span class="font-mono text-sm font-black text-emerald-800">${data.applicationId}</span>
                 </div>
                 <div>
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">System Verification Status</span>
-                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded mt-0.5 inline-block bg-amber-100 text-amber-800 border border-amber-300">${student.status}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Transaction Payment Reference</span>
+                    <span class="font-mono text-xs font-semibold text-slate-700">${data.paymentRef}</span>
                 </div>
                 <div>
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">JAMB Reference Number</span>
-                    <span class="font-mono text-xs font-bold text-slate-900">${student.jambNo}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">JAMB Registration Key</span>
+                    <span class="font-mono text-xs font-bold text-slate-900">${data.jambNo}</span>
                 </div>
                 <div>
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Mapped Program Pipeline</span>
-                    <span class="text-xs font-bold text-emerald-800">${student.academic.course}</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Chosen Academic Course</span>
+                    <span class="text-xs font-bold text-emerald-900">${data.academic.course}</span>
                 </div>
             </div>
-            
-            <div class="bg-slate-50 p-4 rounded-lg border text-xs space-y-2">
-                <div><span class="text-slate-500 font-medium">Candidate Name:</span> <strong class="text-slate-900">${student.biodata.name}</strong></div>
-                <div><span class="text-slate-500 font-medium">Registry Email Anchor:</span> <strong class="lowercase">${student.biodata.email}</strong></div>
-                <div><span class="text-slate-500 font-medium">UTME Verified Metric Score:</span> <strong class="font-mono text-slate-900">${student.academic.score} / 400</strong></div>
+
+            <div>
+                <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider border-b pb-1 mb-3">Candidate Personal Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-slate-800">
+                    <div><span class="text-slate-400 font-medium">Full Name:</span> <strong class="text-slate-950">${data.biodata.name}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Gender Structural Form:</span> <strong>${data.biodata.gender}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Primary Email Address:</span> <strong class="lowercase font-normal">${data.biodata.email}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Mobile Telephone Line:</span> <strong class="font-mono">${data.biodata.phone}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Geographical State of Origin:</span> <strong>${data.biodata.state} (${data.biodata.lga})</strong></div>
+                    <div class="md:col-span-2"><span class="text-slate-400 font-medium">Residential Contact Address:</span> <strong>${data.biodata.address}</strong></div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider border-b pb-1 mb-3">Next of Kin Contact Layer</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-slate-800">
+                    <div><span class="text-slate-400 font-medium">Kin Name Index:</span> <strong class="text-slate-950">${data.nextOfKin.name}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Structural Linkage:</span> <strong>${data.nextOfKin.relation}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Kin Telephone Line:</span> <strong class="font-mono">${data.nextOfKin.phone}</strong></div>
+                    <div><span class="text-slate-400 font-medium">Kin Physical Address:</span> <strong>${data.nextOfKin.address}</strong></div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider border-b pb-1 mb-3">Academic Score Card & Secondary Credentials Profile</h3>
+                <div class="mb-3">
+                    <span class="text-slate-500 font-medium">Official Certified UTME Metric Score:</span> 
+                    <strong class="font-mono bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-xs">${data.academic.score} Points</strong>
+                </div>
+                <div class="bg-slate-50 rounded border overflow-hidden">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-200/80 font-bold text-slate-700 border-b">
+                                <th class="p-2">Subject Title</th>
+                                <th class="p-2">Sitting Source Exam Group</th>
+                                <th class="p-2 text-center">Score Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            ${data.olevel.map(row => `
+                                <tr>
+                                    <td class="p-2 font-medium text-slate-800">${row.subject || 'N/A'}</td>
+                                    <td class="p-2 text-slate-600">${row.sitting || 'N/A'}</td>
+                                    <td class="p-2 text-center font-bold text-emerald-800">${row.grade || 'N/A'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
     };
@@ -243,69 +352,96 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLock.addEventListener('click', () => {
         btnLock.classList.add('hidden');
         btnPrint.classList.remove('hidden');
-        alert("Information parameters verification state successfully locked to registry server logs.");
+        alert("Verification completed. Data logs sealed. Ready for administrative presentation.");
     });
 
-    // --- 7. FIX: RECONFIGURED EMAILJS DISPATCHER ROUTINE ---
-    const triggerAutomatedEmailNotification = (student) => {
-        if (typeof emailjs === 'undefined') {
-            console.error("Critical System Interruption: EmailJS core library context unmapped on global frame.");
+    // Cleaned up EmailJS parameters engine structure
+    const dispatchDynamicNotificationEmail = (payload) => {
+        if (typeof emailjs === 'undefined' || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY_HERE") {
+            console.error("EmailJS payload delivery broken: Configuration context unmapped.");
+            alert("Data saved locally! Email Dispatch Failure: Verify public key anchor initialization parameters inside app.js.");
             return;
         }
 
-        // Reconfigured variables to match standard backend templates explicitly
-        const templateParams = {
-            to_email: student.biodata.email,
-            applicant_name: student.biodata.name,
-            jamb_number: student.jambNo,
-            course_choice: student.academic.course,
-            payment_reference: student.receiptRef,
-            phone_number: student.biodata.phone
+        const structuralParams = {
+            to_email: payload.biodata.email,
+            applicant_name: payload.biodata.name,
+            jamb_number: payload.jambNo,
+            course_choice: payload.academic.course,
+            payment_reference: payload.applicationId,
+            phone_number: payload.biodata.phone
         };
 
-        // Execution of routing token keys
-        emailjs.send("service_6hllp68", "template_p26v91n", templateParams)
-            .then((response) => {
-                console.log("Transmission Success Status:", response.status, response.text);
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, structuralParams)
+            .then(() => {
                 const toast = document.getElementById('email-toast');
                 if (toast) toast.classList.remove('hidden');
             })
-            .catch((error) => {
-                console.error("Critical Email Engine Failure Trace:", error);
-                alert(`Data Saved locally! Email Dispatch Failure: ${error.text || 'Verify public key anchor initialization parameters.'}`);
+            .catch((err) => {
+                console.error("Mail server transmission fault trace log:", err);
+                alert(`Data processed locally. System Mail Dispatch Error: ${err.text || 'Verification token failed.'}`);
             });
     };
 
-    // --- 8. ADMIN DASHBOARD DATABASE REVIEWS ---
-    const renderAdminDashboardTable = () => {
+    // Control layout render loops for dynamic admin logs view
+    const buildAdminViewDataLogs = () => {
         adminTableBody.innerHTML = '';
-        const db = loadRegistryData();
-        const keys = Object.keys(db);
+        const db = getStorageData();
+        const processingKeys = Object.keys(db);
 
-        if (keys.length === 0) {
-            adminTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 font-medium">No candidate registrations processed.</td></tr>`;
+        if (processingKeys.length === 0) {
+            adminTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 font-medium">No candidate data files located inside browser session storage cache.</td></tr>`;
             return;
         }
 
-        keys.forEach(key => {
-            const student = db[key];
-            const tr = document.createElement('tr');
-            tr.className = "border-b hover:bg-slate-50/50";
-            tr.innerHTML = `
-                <td class="p-3 font-mono font-bold text-slate-900">${student.jambNo}</td>
-                <td class="p-3 font-semibold uppercase text-slate-700">${student.biodata.name}</td>
-                <td class="p-3 font-mono font-bold">${student.academic.score}</td>
-                <td class="p-3 text-slate-600">${student.academic.course}</td>
-                <td class="p-3"><span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700">${student.status}</span></td>
+        processingKeys.forEach(key => {
+            const rowData = db[key];
+            const tableRow = document.createElement('tr');
+            tableRow.className = "hover:bg-slate-50/70 transition-colors";
+            
+            tableRow.innerHTML = `
+                <td class="p-3 font-mono font-bold text-slate-900">${rowData.jambNo}</td>
+                <td class="p-3 font-semibold uppercase text-slate-700">${rowData.biodata.name}</td>
+                <td class="p-3 font-mono font-bold text-slate-800">${rowData.academic.score}</td>
+                <td class="p-3 text-slate-600 font-medium">${rowData.academic.course}</td>
+                <td class="p-3">
+                    <select id="status-toggle-${rowData.jambNo}" class="p-1 border rounded text-xs font-bold bg-white text-slate-700 outline-none">
+                        <option value="Pending" ${rowData.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Under Review" ${rowData.status === 'Under Review' ? 'selected' : ''}>Under Review</option>
+                        <option value="Admitted" ${rowData.status === 'Admitted' ? 'selected' : ''}>Admitted</option>
+                        <option value="Rejected" ${rowData.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    </select>
+                </td>
+                <td class="p-3 text-center">
+                    <button id="del-btn-${rowData.jambNo}" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded px-2 py-1 text-[11px] font-bold uppercase">Purge</button>
+                </td>
             `;
-            adminTableBody.appendChild(tr);
+            
+            adminTableBody.appendChild(tableRow);
+
+            // Bind contextual status state drop alterations inside rows
+            document.getElementById(`status-toggle-${rowData.jambNo}`).addEventListener('change', (e) => {
+                const currentDb = getStorageData();
+                currentDb[rowData.jambNo].status = e.target.value;
+                setStorageData(currentDb);
+            });
+
+            // Bind contextual single line deletion handlers
+            document.getElementById(`del-btn-${rowData.jambNo}`).addEventListener('click', () => {
+                if (confirm(`Remove candidate profile logs assigned to ${rowData.jambNo}?`)) {
+                    const currentDb = getStorageData();
+                    delete currentDb[rowData.jambNo];
+                    setStorageData(currentDb);
+                    buildAdminViewDataLogs();
+                }
+            });
         });
     };
 
     adminClearAll.addEventListener('click', () => {
-        if (confirm("⚠️ System Warning: Purge current registry session storage entries?")) {
-            localStorage.removeItem('uniosun_registry');
-            renderAdminDashboardTable();
+        if (confirm("⚠️ System Master Warning: Completely purge applicant runtime data logs from system local storage cache?")) {
+            localStorage.removeItem('uniosun_db');
+            buildAdminViewDataLogs();
         }
     });
 });
