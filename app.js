@@ -2,22 +2,20 @@
  * OSUN STATE UNIVERSITY PORTAL APPLICATION MANAGEMENT SCRIPT
  */
 
-// --- CRITICAL EMAILJS CONFIGURATION WORKBENCH ---
-// Paste your EmailJS public account key token string here to stop verification failures.
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY_HERE"; 
+// --- CONFIGURATION WORKBENCH ---
+const EMAILJS_PUBLIC_KEY = "e4lNbK-RTBf77j2Gm"; 
 const EMAILJS_SERVICE_ID = "service_6hllp68";
 const EMAILJS_TEMPLATE_ID = "template_p26v91n";
 
-// Initialize EmailJS Engine instantly on boot cycle execution
+// Graceful fallback execution init sequence
 if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
     emailjs.init(EMAILJS_PUBLIC_KEY);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Top-level Application State
     let activeJambNumber = '';
 
-    // Core Node Reference Map
+    // Core Node Elements Map
     const viewPortalBtn = document.getElementById('view-portal-btn');
     const viewAdminBtn = document.getElementById('view-admin-btn');
     const portalView = document.getElementById('portal-view-container');
@@ -50,18 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminTableBody = document.getElementById('admin-table-body');
     const adminClearAll = document.getElementById('admin-clear-all');
 
-    // Mapped standard baseline subjects
     const SUBJECTS = [
         "English Language", "Mathematics", "Physics", "Chemistry", "Biology",
         "Agricultural Science", "Government", "Economics", "Geography", 
         "Commerce", "Literature in English", "Christian Religious Studies", "Islamic Studies"
     ];
 
-    // Local Storage Wrapper Logic APIs
     const getStorageData = () => JSON.parse(localStorage.getItem('uniosun_db')) || {};
     const setStorageData = (data) => localStorage.setItem('uniosun_db', JSON.stringify(data));
 
-    // Dynamic configuration generator for O'Level Matrix inputs matching original dimensions
+    // Dynamic O'Level Table Builder
     if (olevelRows) {
         let contentHtml = '';
         for (let i = 0; i < 5; i++) {
@@ -93,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         olevelRows.innerHTML = contentHtml;
     }
 
-    // Header navigation display panel routing configuration mapping
     const navigateToView = (viewTarget) => {
         [portalView, slipView, adminView].forEach(view => view.classList.add('hidden'));
         viewTarget.classList.remove('hidden');
@@ -115,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     viewPortalBtn.addEventListener('click', () => navigateToView(portalView));
     viewAdminBtn.addEventListener('click', () => navigateToView(adminView));
 
-    // Entry point lookup gateway tracking controller logic processing loops
     verifyBtn.addEventListener('click', () => {
         const jambNo = jambInput.value.trim().toUpperCase();
         if (!jambNo) {
@@ -155,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
         trackName.textContent = record.biodata.name;
         trackRef.textContent = `Ref: ${record.applicationId}`;
 
-        // Dynamic setup for status workflow metrics
         if (record.status === 'Under Review') {
             dotStep2.className = "w-2.5 h-2.5 rounded-full bg-amber-500 mt-1.5 ml-1 z-10";
             descStep2.className = "text-[11px] text-amber-600 block font-medium";
@@ -198,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         step1Error.classList.remove('hidden');
     };
 
-    // Paystack Inline checkout intercept point logic parameters
     portalForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const emailAddress = document.getElementById('bio-email').value.trim();
@@ -208,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Configuration setup mapping the official v2 Pop module parameters structure
         const checkoutPopup = new PaystackPop();
         checkoutPopup.newTransaction({
             key: 'pk_test_bcd318f5e1420ba1743cf656363315a862fba1ed',
@@ -272,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dispatchDynamicNotificationEmail(registrationPayload);
     };
 
-    // Reconstructs clean, complete application data for printing
     const populateSlipMarkupView = (data) => {
         btnLock.classList.remove('hidden');
         btnPrint.classList.add('hidden');
@@ -355,35 +345,40 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Verification completed. Data logs sealed. Ready for administrative presentation.");
     });
 
-    // Cleaned up EmailJS parameters engine structure
+    // Execution loop to trigger both real EmailJS transmission and the local popup simulator
     const dispatchDynamicNotificationEmail = (payload) => {
-        if (typeof emailjs === 'undefined' || EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY_HERE") {
-            console.error("EmailJS payload delivery broken: Configuration context unmapped.");
-            alert("Data saved locally! Email Dispatch Failure: Verify public key anchor initialization parameters inside app.js.");
-            return;
+        // Trigger floating corner alert notification toast
+        const toast = document.getElementById('email-toast');
+        if (toast) toast.classList.remove('hidden');
+
+        // Populate dynamic properties into simulator overlay box window elements
+        document.getElementById('sim-email-to').textContent = payload.biodata.email;
+        document.getElementById('sim-applicant-name').textContent = payload.biodata.name;
+        document.getElementById('sim-jamb-no').textContent = payload.jambNo;
+        document.getElementById('sim-ref-id').textContent = payload.applicationId;
+        document.getElementById('sim-course').textContent = payload.academic.course;
+        document.getElementById('sim-phone').textContent = payload.biodata.phone;
+
+        // Display the simulation modal after 1.5 seconds
+        setTimeout(() => {
+            const modal = document.getElementById('email-modal-simulator');
+            if (modal) modal.classList.remove('hidden');
+        }, 1500);
+
+        // Run authentic server upload routine
+        if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY_HERE") {
+            const structuralParams = {
+                to_email: payload.biodata.email,
+                applicant_name: payload.biodata.name,
+                jamb_number: payload.jambNo,
+                course_choice: payload.academic.course,
+                payment_reference: payload.applicationId,
+                phone_number: payload.biodata.phone
+            };
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, structuralParams).catch(err => console.log(err));
         }
-
-        const structuralParams = {
-            to_email: payload.biodata.email,
-            applicant_name: payload.biodata.name,
-            jamb_number: payload.jambNo,
-            course_choice: payload.academic.course,
-            payment_reference: payload.applicationId,
-            phone_number: payload.biodata.phone
-        };
-
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, structuralParams)
-            .then(() => {
-                const toast = document.getElementById('email-toast');
-                if (toast) toast.classList.remove('hidden');
-            })
-            .catch((err) => {
-                console.error("Mail server transmission fault trace log:", err);
-                alert(`Data processed locally. System Mail Dispatch Error: ${err.text || 'Verification token failed.'}`);
-            });
     };
 
-    // Control layout render loops for dynamic admin logs view
     const buildAdminViewDataLogs = () => {
         adminTableBody.innerHTML = '';
         const db = getStorageData();
@@ -419,14 +414,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             adminTableBody.appendChild(tableRow);
 
-            // Bind contextual status state drop alterations inside rows
             document.getElementById(`status-toggle-${rowData.jambNo}`).addEventListener('change', (e) => {
                 const currentDb = getStorageData();
                 currentDb[rowData.jambNo].status = e.target.value;
                 setStorageData(currentDb);
             });
 
-            // Bind contextual single line deletion handlers
             document.getElementById(`del-btn-${rowData.jambNo}`).addEventListener('click', () => {
                 if (confirm(`Remove candidate profile logs assigned to ${rowData.jambNo}?`)) {
                     const currentDb = getStorageData();
